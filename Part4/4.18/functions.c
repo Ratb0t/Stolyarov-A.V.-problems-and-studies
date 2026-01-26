@@ -46,47 +46,13 @@ int test_overflow()
 
 int print_3times_numbers()
 {
-    int ch;
     int readed = 0;
     struct item *lst = 0;
-    long result = 0;
-    int sign = 0;
-    while ((ch = getchar()) != EOF)
+    int result = 0;
+    int err;
+    while ((err = getline_int(&result, &readed)) != EOF && err != 0)
     {
-
-        if(ch == '-')
-            sign = 1;
-
-        if (ch >= '0' && ch <= '9')
-        {
-            if( result > __INT_MAX__ / 10 || result < (~__INT_MAX__)/10)
-            {
-                printf("Overflow.\n");
-                return 1;
-            }
-            result *= 10;
-            if(!sign)
-            {
-                if(check_overflow(result, ch - '0'))//if (result > __INT_MAX__ - (ch - '0') )
-                {
-                    printf("Too large a number was entered, causing an overflow.\n");
-                    return 2;
-                }
-                result += ch - '0';
-            }
-            else
-            {
-                if (check_overflow(result, -(ch - '0'))) // if (result < (~__INT_MAX__) - (ch - '0') )
-                {
-                    printf("Too small a number was entered, causing an overflow.\n");
-                    return 3;
-                }
-                result -= ch - '0';
-            }
-            
-            readed += 1;
-        }
-        if (readed && (ch == ' ' || ch == '\t' || ch == '\n'))
+        if (readed)
         {
             struct item *iter = lst;
 
@@ -110,23 +76,24 @@ int print_3times_numbers()
                 iter->next = lst;
                 lst = iter;
             }
-
-            readed = 0;
-            result = 0;
-            sign = 0;
         }
     }
     list_revers(&lst);
     struct item *iter = lst;
-    while (iter)
+    
+    if(iter)
     {
-        if (iter->times >= 3)
+        while (iter)
         {
-            printf("%d ", iter->data);
+            if (iter->times >= 3)
+            {
+                printf("%d ", iter->data);
+            }
+            iter = iter->next;
         }
-        iter = iter->next;
+        putchar('\n');
     }
-    putchar('\n');
+    
     destroy_lst(lst);
     return 1;
 }
@@ -190,4 +157,68 @@ int print_most_common_numbers()
     return 1;
 }
 
+int getline_int(int *out, int *readed)
+{
+    int ch;
+    int result = 0;
+    int sign = 0; 
+    *readed = 0;
+    while ((ch = getchar()) != EOF)
+    {
+        if (ch == '-')
+            sign = 1;
 
+        if (ch >= '0' && ch <= '9')
+        {
+            if (result > __INT_MAX__ / 10 || result < (~__INT_MAX__) / 10)
+            {
+#ifdef DEBUG_PRINT_print_3times_numbers
+                printf("Overflow.\n");
+#endif
+                *readed = -21;
+                return 0;
+            }
+            result *= 10;
+            if (!sign)
+            {
+                if (check_overflow(result, ch - '0')) // if (result > __INT_MAX__ - (ch - '0') )
+                {
+#ifdef DEBUG_PRINT_print_3times_numbers
+                    printf("Too large a number was entered, causing an overflow.\n");
+#endif
+                    *readed = -22;
+                    return 0;
+                }
+                result += ch - '0';
+            }
+            else
+            {
+                if (check_overflow(result, -(ch - '0'))) // if (result < (~__INT_MAX__) - (ch - '0') )
+                {
+#ifdef DEBUG_PRINT_print_3times_numbers
+                    printf("Too small a number was entered, causing an overflow.\n");
+#endif
+                    *readed = -23;
+                    return 0;
+                }
+                result -= ch - '0';
+            }
+
+            *readed += 1;
+        }
+        if (*readed && (ch == ' ' || ch == '\t' || ch == '\n'))
+        {
+            *out = result;
+            return 1;
+        }
+    }
+
+    // if (ch == EOF)
+    // {
+        if(*readed)
+            *out = result;
+        return EOF;
+    // }
+        
+    // return 0;
+}
