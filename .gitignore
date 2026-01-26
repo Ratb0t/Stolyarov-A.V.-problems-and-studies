@@ -1,0 +1,9 @@
+
+Part4/**/Build
+
+Part4/**/*.o
+Part4/**/*.exe
+
+Part4/**/.testdata
+
+Part4/**/.log
