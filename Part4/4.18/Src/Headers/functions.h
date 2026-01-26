@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define INT_CHAR_LENGTH 10
-
 #define DEBUG_PRINT_print_3times_numbers
+
+
 
 struct item
 {

@@ -1,0 +1,4 @@
+gcc -g -Wall -MD -c -I./Src/Headers/ Src/my_string.c -o Build/objects/my_string.o
+gcc Build/objects/functions.o Build/objects/main.o Build/objects/my_string.o Build/objects/overflow.o -o Build/bin/main.exe
+gcc -g -Wall -MD -c -I./Src/Headers/ Src/test.c -o Build/objects/test.o
+gcc Build/objects/functions.o Build/objects/my_string.o Build/objects/test.o Build/objects/overflow.o -o Build/bin/test.exe

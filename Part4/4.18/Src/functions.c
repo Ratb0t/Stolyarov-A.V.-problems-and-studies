@@ -170,6 +170,7 @@ int print_most_common_numbers()
     struct item *lst = 0;
     int result = 0;
     int err;
+    int most_common = 0;
     while ((err = getline_int(&result, &readed)) != EOF && err != 0)
     {
         if (readed)
@@ -181,6 +182,8 @@ int print_most_common_numbers()
                 if (iter->data == result)
                 {
                     iter->times += 1;
+                    if(most_common < iter->times)
+                        most_common = iter->times;
                     break;
                 }
                 else
@@ -205,15 +208,17 @@ int print_most_common_numbers()
     {
         while (iter)
         {
-            if (iter->times >= 3)
+            if (iter->times == most_common)
             {
                 printf("%d ", iter->data);
             }
+            struct item *tmp = iter;
             iter = iter->next;
+            free(tmp);
         }
         putchar('\n');
     }
 
-    destroy_lst(lst);
+    //destroy_lst(lst);
     return 1;
 }
