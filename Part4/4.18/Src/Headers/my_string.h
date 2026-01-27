@@ -3,24 +3,38 @@
 #define REINCLUDE_PROTECTION_MY_STRING
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #define CAPACITY_FACTOR 1.5
-#define LONG_STRING_FOR_TESTS1
+#define STRING_RESIZE_THRESHOLD 30
+#define PERCENT_OF(n1, n2)(n1) * 100 / (n2)
+#define LONG_STRING_FOR_TESTS
+
 
 struct my_string;
 
+int my_memcpy(void *dest, const void *src, size_t n);
 int my_strlen(const char *buf);
-int get_my_string_len(struct my_string *str);
+int my_str_get_len(const struct my_string *str);
+const char *my_str_get_data(const struct my_string *str);
 
-int set_string(struct my_string *str, const char *buf);
-struct my_string *create_string(const char *buf);
+struct my_string *my_str_create(const char *buf);
+struct my_string *my_str_create_with_capacity(int capacity);
 
-int destroy_my_string(struct my_string *str);
+int my_str_pushback_char(struct my_string *str, char ch);
+struct my_string *my_str_insert(const struct my_string *dest, int pos, const struct my_string *src);
+struct my_string *my_str_concatenation(const struct my_string *str1, const struct my_string *str2);
 
+int my_str_set_string(struct my_string *str, const char *buf);
+
+int my_str_destroy(struct my_string *str);
 
 #ifndef LONG_STRING_FOR_TESTS
+#define DEFAULT_CAPACITY_SIZE 256
 #define VERY_LONG_STRING "Hello world!!!\n"
-#else 
+#else
+#define DEFAULT_CAPACITY_SIZE 5
+#include <stdio.h>
 #define VERY_LONG_STRING "The Valgrind distribution currently"\
 "includes seven production-quality tools: a memory error "\
 "detector, two thread error detectors, a cache and "\
