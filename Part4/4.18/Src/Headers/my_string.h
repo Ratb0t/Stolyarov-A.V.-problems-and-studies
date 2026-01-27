@@ -8,8 +8,9 @@
 #define CAPACITY_FACTOR 1.5
 #define STRING_RESIZE_THRESHOLD 30
 #define PERCENT_OF(n1, n2)(n1) * 100 / (n2)
+#ifdef DEBUG
 #define LONG_STRING_FOR_TESTS
-
+#endif
 
 struct my_string;
 
