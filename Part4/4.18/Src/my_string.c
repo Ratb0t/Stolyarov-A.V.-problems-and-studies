@@ -92,6 +92,7 @@ struct my_string *my_str_create(const char *buf)
     else
     {
         str->buf = malloc(str->capacity);
+        str->length = 0;
         if (!str->buf)
         {
             free(str);
@@ -99,9 +100,6 @@ struct my_string *my_str_create(const char *buf)
         }
     }
 
-    
-    
-    
     return str;
 }
 
@@ -161,6 +159,9 @@ int my_str_destroy(struct my_string *str)
 
 struct my_string *my_str_insert(const struct my_string *str1, int pos, const struct my_string *str2)
 {
+    if(str1->length < pos)
+        return 0;
+        
     struct my_string *result = my_str_create_with_capacity((str1->length + str2->length) * CAPACITY_FACTOR);
     if(!result)
         return 0;;
@@ -196,7 +197,7 @@ struct my_string *my_str_insert(const struct my_string *str1, int pos, const str
 
 struct my_string *my_str_concatenation(const struct my_string *str1, const struct my_string *str2)
 {
-    return my_str_insert(str1, my_str_get_len(str1) - 1, str2);
+    return my_str_insert(str1, my_str_get_len(str1), str2);
 }
 
 const char *my_str_get_data(const struct my_string *str)
@@ -206,11 +207,12 @@ const char *my_str_get_data(const struct my_string *str)
 
 int my_str_pushback_char(struct my_string *str, char ch)
 {
-    if (PERCENT_OF(str->length + 1, str->capacity) <= STRING_RESIZE_THRESHOLD)
+    if (PERCENT_OF(str->length + 2, str->capacity) >= STRING_RESIZE_THRESHOLD)
         if(!buf_resize(str))
-            return 0;;
-    
-    str->buf[str->length - 1] = ch;
+            return 0;
+                
+    str->buf[str->length] = ch;
     str->length += 1;
+    str->buf[str->length + 1] = 0;
     return 1;
 }
