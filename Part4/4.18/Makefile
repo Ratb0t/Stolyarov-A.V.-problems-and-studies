@@ -11,7 +11,7 @@ CC = gcc
 ASM = nasm
 CFLAGS = -g -Wall -MD -c -I./$(HEADERS_DIR)/
 ASMFLAGS = -f elf64 -g -F dwarf
-
+DEFINITIONS = #-DDEBUG
 
 MAIN_DEPS = my_string.h functions.h
 FUNCTIONS_DEPS = functions.h
@@ -43,8 +43,7 @@ $(BIN_DIR)/$(Executable_test) : $(TEST_OBJ) | $(OBJ_DIR) $(BIN_DIR)
 	$(CC) $(TEST_OBJ) -o $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) $< -o $@
-
+	$(CC) $(DEFINITIONS) $(CFLAGS) $< -o $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.asm | $(OBJ_DIR)
 	$(ASM) $(ASMFLAGS) $< -o $@
@@ -64,3 +63,5 @@ get:
 #	echo $(SRC_ASM)
 	echo main_obj == $(MAIN_OBJ)
 	echo test_obj == $(TEST_OBJ)
+
+rebuild : clean all
