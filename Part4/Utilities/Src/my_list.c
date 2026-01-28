@@ -108,10 +108,10 @@ int my_list_push_back(my_list *list, void *data)
     return 1;
 }
 
-int my_list_delete_item(my_list *lst, int pos)
+void *my_list_delete_item(my_list *lst, unsigned int pos)
 {
     if(pos > lst->length)
-        return 0;
+        return NULL;
 
     my_list_iterator *iter;
     iter = &lst->head;
@@ -124,10 +124,11 @@ int my_list_delete_item(my_list *lst, int pos)
    
     my_list_iterator tmp = *iter;
     *iter = tmp->next;
+    void *tmp_data = tmp->data_holder;
     free(tmp);
 
     lst->length -= 1;
-    return 1;
+    return tmp_data;
 }
 
 inline unsigned int my_list_get_len(const my_list *lst)
