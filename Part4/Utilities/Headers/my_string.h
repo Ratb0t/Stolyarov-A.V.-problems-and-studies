@@ -4,7 +4,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-
+#include "my_macroses.h"
 #define CAPACITY_FACTOR 1.5
 #define STRING_RESIZE_THRESHOLD 70
 #define PERCENT_OF(n1, n2)(n1) * 100 / (n2)
