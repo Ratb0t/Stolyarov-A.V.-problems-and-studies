@@ -23,6 +23,8 @@ int my_list_push_front(my_list *list, void *data);
 
 int my_list_push_back(my_list *list, void *data);
 /*******************************************************************************/
+void *my_list_delete_item(my_list *lst, unsigned int pos);
+/*******************************************************************************/
 unsigned int my_list_get_len(const my_list *lst);
 
 my_list_iterator my_list_get_item(const my_list *lst, unsigned int pos);
