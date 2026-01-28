@@ -2,25 +2,28 @@
 Executable = main.exe
 Executable_test = test.exe
 
+HEADERS_DIR = Src/Headers
+UTILS_HEADERS_DIR = /workspaces/Stolyarov-A.V.-problems-and-studies/Part4/Utilities/Headers
+SRC_DIR = Src
+UTILS_SRC_DIR = /workspaces/Stolyarov-A.V.-problems-and-studies/Part4/Utilities/Src
 OBJ_DIR = Build/objects
 BIN_DIR = Build/bin
-HEADERS_DIR = Src/Headers
-SRC_DIR = Src
 
 CC = gcc
 ASM = nasm
-CFLAGS = -g -Wall -MD -c -I./$(HEADERS_DIR)/
+HEADERS_CFLAGS = -I$(HEADERS_DIR)/ -I$(UTILS_HEADERS_DIR)/
+CFLAGS = -g -Wall -MD -c $(HEADERS_CFLAGS)/
 ASMFLAGS = -f elf64 -g -F dwarf
 DEFINITIONS = #-DDEBUG
 
-MAIN_DEPS = my_string.h functions.h
-FUNCTIONS_DEPS = functions.h
-MY_STRING_DEPS = my_string.h
-
 SRC_C = $(wildcard $(SRC_DIR)/*.c)
+SRC_UTILS_C = $(wildcard $(UTILS_SRC_DIR)/*.c)
 SRC_ASM = $(wildcard $(SRC_DIR)/*.asm)
 
-OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_C)) $(patsubst $(SRC_DIR)/%.asm, $(OBJ_DIR)/%.o, $(SRC_ASM))
+OBJ = $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_C))\
+$(patsubst $(UTILS_SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_UTILS_C))\
+$(patsubst $(SRC_DIR)/%.asm, $(OBJ_DIR)/%.o, $(SRC_ASM))\
+
 TEST_OBJ = $(filter-out $(OBJ_DIR)/main.o, $(OBJ))
 MAIN_OBJ = $(filter-out $(OBJ_DIR)/test.o, $(OBJ))
 
@@ -42,7 +45,10 @@ $(BIN_DIR)/$(Executable) : $(MAIN_OBJ) | $(OBJ_DIR) $(BIN_DIR)
 $(BIN_DIR)/$(Executable_test) : $(TEST_OBJ) | $(OBJ_DIR) $(BIN_DIR)
 	$(CC) $(TEST_OBJ) -o $@
 
-$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR)
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR) 
+	$(CC) $(DEFINITIONS) $(CFLAGS) $< -o $@
+
+$(OBJ_DIR)/%.o : $(UTILS_SRC_DIR)/%.c | $(OBJ_DIR) 
 	$(CC) $(DEFINITIONS) $(CFLAGS) $< -o $@
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.asm | $(OBJ_DIR)
@@ -56,12 +62,23 @@ $(BIN_DIR):
 include $(wildcard $(OBJ_DIR)/*.d)
 
 clean : 
-	rm $(BIN_DIR)/*.exe $(OBJ_DIR)/*.o
-	rm	*.exe
+	-rm $(OBJ_DIR)/*.d 
+	-rm $(OBJ_DIR)/*.o
+	-rm $(BIN_DIR)/*.exe 
+	-rm	*.exe
+
 get:
-#	echo $(SRC_C)
-#	echo $(SRC_ASM)
+	echo $(SRC_C)
+	echo =====================================================================
+	echo $(SRC_UTILS_C)
+	echo =====================================================================
+	echo $(SRC_ASM)
+	echo =====================================================================
 	echo main_obj == $(MAIN_OBJ)
+	echo =====================================================================
 	echo test_obj == $(TEST_OBJ)
+	echo =====================================================================
+	echo obj == $(OBJ)
+	echo =====================================================================
 
 rebuild : clean all
