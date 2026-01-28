@@ -66,39 +66,6 @@ int getline_int(int *out, int *readed)
     // return 0;
 }
 
-int list_revers(struct node **lst)
-{
-    struct node *prev = 0;
-    struct node *cur = *lst;
-    struct node *next = 0;
-
-    while (cur)
-    {
-        next = cur->next;
-
-        cur->next = prev;
-
-        prev = cur;
-        cur = next;
-    }
-
-    *lst = prev;
-    return 1;
-}
-
-int my_list_destroy(struct node *lst)
-{
-    while (lst)
-    {
-        struct node *tmp = lst;
-        lst = lst->next;
-        free(tmp);
-    }
-
-    return 1;
-}
-
-
 int test_overflow()
 {
     printf("0 == %d\n", check_overflow(~__INT_MAX__, __INT_MAX__)); // 0
@@ -114,14 +81,16 @@ int test_overflow()
 int print_3times_numbers()
 {
     int readed = 0;
-    struct node *lst = 0;
+    my_list *lst;
+    if (!(lst = my_list_create()))
+        return 0;
     int result = 0;
     int err;
     while ((err = getline_int(&result, &readed)) != EOF && err != 0)
     {
         if (readed)
         {
-            struct node *iter = lst;
+            my_list_iterator iter = my_list_get_first(lst);
 
             while (iter)
             {
@@ -135,25 +104,20 @@ int print_3times_numbers()
             }
             if (!iter)
             {
-                iter = malloc(sizeof(struct node));
-                if (!iter)
-                    continue;
-                iter->data_holder = malloc(sizeof(struct item));
-                if (!iter->data_holder)
+                struct item* tmp;
+                if (!(tmp = malloc(sizeof(struct item))))
                 {
-                    free(iter);
                     continue;
                 }
-                ((struct item *)(iter->data_holder))->times = 1;
-                ((struct item *)(iter->data_holder))->data = result;
-                iter->next = lst;
-                lst = iter;
+                tmp->times = 1;
+                tmp->data = result;
+                my_list_push_front(lst, tmp);
             }
         }
     }
-    list_revers(&lst);
-    struct node *iter = lst;
-    
+    my_list_revers(lst);
+    my_list_iterator iter = my_list_get_first(lst);
+
     if(iter)
     {
         while (iter)
@@ -166,9 +130,8 @@ int print_3times_numbers()
         }
         putchar('\n');
     }
-    
 
-    for(struct node *iter = lst; iter; iter = iter->next)
+    for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
         free(iter->data_holder);
         
     my_list_destroy(lst);
@@ -178,7 +141,9 @@ int print_3times_numbers()
 int print_most_common_numbers()
 {
     int readed = 0;
-    struct node *lst = 0;
+    my_list *lst;
+    if (!(lst = my_list_create()))
+        return 0;
     int result = 0;
     int err;
     int most_common = 0;
@@ -186,7 +151,7 @@ int print_most_common_numbers()
     {
         if (readed)
         {
-            struct node *iter = lst;
+            my_list_iterator iter = my_list_get_first(lst);
 
             while (iter)
             {
@@ -202,24 +167,19 @@ int print_most_common_numbers()
             }
             if (!iter)
             {
-                iter = malloc(sizeof(struct node));
-                if (!iter)
-                    continue;
-                iter->data_holder = malloc(sizeof(struct item));
-                if (!iter->data_holder)
+                struct item *tmp;
+                if (!(tmp = malloc(sizeof(struct item))))
                 {
-                    free(iter);
                     continue;
                 }
-                ((struct item *)(iter->data_holder))->times = 1;
-                ((struct item *)(iter->data_holder))->data = result;
-                iter->next = lst;
-                lst = iter;
+                tmp->times = 1;
+                tmp->data = result;
+                my_list_push_front(lst, tmp);
             }
         }
     }
-    list_revers(&lst);
-    struct node *iter = lst;
+    my_list_revers(lst);
+    my_list_iterator iter = my_list_get_first(lst);
 
     if (iter)
     {
@@ -234,61 +194,35 @@ int print_most_common_numbers()
         putchar('\n');
     }
 
-    for (struct node *iter = lst; iter; iter = iter->next)
+    for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
         free(iter->data_holder);
 
     my_list_destroy(lst);
     return 1;
 }
 
-struct node *my_list_create(void *data)
-{
-    struct node *tmp = malloc(sizeof(struct node));
-    if (!tmp)
-        return NULL;
-
-    tmp->data_holder = data;
-    
-    tmp->next = 0;
-
-    return tmp;
-}
-int my_list_pushfoward(struct node **list, void *data)
-{
-    
-    struct node *tmp;
-
-    if ((tmp = malloc(sizeof(struct node))) == 0)
-        return 0;
-
-    tmp->data_holder = data;
-
-    tmp->next = *list;
-    *list = tmp;
-
-    return 1;
-}
 int reverse_sentence()
 {
     struct my_string *str;
-    struct node *lst;
+    my_list *lst;
+    //my_list_head head;
     int ch;
     if ((str = my_str_create(0)) == 0)
         return 0;
     if ((lst = my_list_create(str)) == 0)
         return 0;
+    //head = my_list_get_head(lst);
     while ((ch = getchar()) != EOF)
     {
         if(ch <= ' ')
         {
-            my_str_pushback_char(lst->data_holder, ' ');
-            my_str_pushback_char(lst->data_holder, 0);
-            if ((str = my_str_create(0)) == 0 ||
-                my_list_pushfoward(&lst, str) == 0)
+            my_str_pushback_char(str, ' ');
+            if ((my_list_push_front(lst, str) == 0 || 
+            (str = my_str_create(0))) == 0)
             {
                 if(str)
                     my_str_destroy(str);
-                struct node *iter = lst;
+                my_list_iterator iter = my_list_get_first(lst);
                 for (; iter; iter = iter->next)
                 {
                     if(iter->data_holder)
@@ -299,12 +233,24 @@ int reverse_sentence()
             }
             continue;
         }
-        my_str_pushback_char(lst->data_holder, ch);
+        my_str_pushback_char(str, ch);
     }
-
-    for (struct node *iter = lst; iter; iter = iter->next)
+    
+    my_str_destroy(str);
+    
+    for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
     {
+#ifndef DEBUG_PRINT_print_3times_numbers
+        for (int i = 0; i <= my_str_get_len(iter->data_holder); ++i)
+            {
+                int ch = my_str_get_data(iter->data_holder)[i];
+                printf("\n%3d - %3c", ch, ch);
+            }
+            printf("\n%s", my_str_get_data(iter->data_holder));
+#else
         printf("%s", my_str_get_data(iter->data_holder));
+#endif
+        
         my_str_destroy(iter->data_holder);
     }
     my_list_destroy(lst);
