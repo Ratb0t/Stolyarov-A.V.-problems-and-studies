@@ -3,20 +3,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "my_string.h"
+#include "my_list.h"
 #define DEBUG_PRINT_print_3times_numbers
-
-
-
+#define DEBUG_PRINT_reverse_sentence1
 struct item
 {
     int data;
     int times;
-};
-
-struct node
-{
-    void *data_holder;
-    struct node *next;
 };
 
 /*
@@ -38,8 +31,6 @@ int getline_int(int *out, int *readed);
 
 int print_3times_numbers();
 int print_most_common_numbers();
-int list_revers(struct node **lst);
-int my_list_destroy(struct node *lst);
 
 int reverse_sentence();
 //Use only on x64 platform 
