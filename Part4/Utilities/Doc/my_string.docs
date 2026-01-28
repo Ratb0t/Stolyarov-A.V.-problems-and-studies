@@ -39,7 +39,7 @@ struct my_string *my_str_create(const char *buf)
         Возвращаемые значения:
         - Если функция выполнена успешно, возвращает не нулевое значение
 
-        - Если функция завершается неудачно возвращает 0
+        - Если функция завершается неудачно возвращает NULL
 
 struct my_string *my_str_create_with_capacity(int capacity)
  - Cоздает объект типа struct my_string с заданной ёмкостью
@@ -48,7 +48,7 @@ struct my_string *my_str_create_with_capacity(int capacity)
         Возвращаемые значения:
         - Если функция выполнена успешно, возвращает не нулевое значение
  
-        - Если функция завершается неудачно возвращает 0
+        - Если функция завершается неудачно возвращает NULL
  
 int my_str_pushback_char(struct my_string *str, char ch)
  - Добавляет в конец строки символ, смещая терминирующий 0 на 1 символ влево
@@ -75,7 +75,7 @@ struct my_string *my_str_insert(const struct my_string *dest,
         - Если функция выполнена успешно, возвращает указатель на новую
         struct my_string
   
-        - Если функция завершается неудачно возвращает 0
+        - Если функция завершается неудачно возвращает NULL
  
 struct my_string *my_str_concatenation(const struct my_string *str1, 
                                         const struct my_string *str2) 
@@ -88,7 +88,7 @@ struct my_string *my_str_concatenation(const struct my_string *str1,
         - Если функция выполнена успешно, возвращает указатель на новую
         struct my_string
  
-        - Если функция завершается неудачно возвращает 0
+        - Если функция завершается неудачно возвращает NULL
 
 int my_str_set_string(struct my_string *str, const char *buf)
  - Устанавливает новое значение строки
