@@ -1,4 +1,26 @@
-my_list *my_list_create()
+typedef union universal_data_type
+{
+    long long as_long;
+    int as_int;
+    double as_double;
+    short as_short;
+    char as_char;
+
+    unsigned long long as_ulong;
+    unsigned int as_uint;
+    unsigned short as_ushort;
+    unsigned char as_uchar;
+
+    void *as_void;
+} top_type;
+
+struct node
+{
+    top_type data_holder;
+    struct node *next;
+};
+
+my_list *my_list_create(void)
 - Создает пустой список
 
         Возвращаемые значения:
@@ -16,14 +38,14 @@ int my_list_destroy(my_list *lst)
         - Если функция выполнена успешно,
         возвращает не нулевое значение
 
-void *my_list_delete_item(my_list *lst, unsigned int pos)
+top_type my_list_delete_item(my_list *lst, unsigned int pos)
 - Удаляет данные из заданной позиции
         [in] *lst - указатель на структуру my_list
         [in] pos - индекс элемента которы необходимо удалить
 
         Возвращаемые значения:
         - Если функция выполнена успешно,
-        возвращает указатель на данные
+        возвращает данные
 
         - Если функция завершается неудачно,
         возвращает нулевое значение
@@ -36,7 +58,7 @@ int my_list_revers(my_list *lst)
         - Если функция выполнена успешно,
         возвращает не нулевое значение
 
-int my_list_push_front(my_list *list, void *data)
+int my_list_push_front(my_list *list, top_type data)
 - Помещает данные в начало списка
         [in] *lst - указатель на структуру my_list
         [in] *data - входные данные
@@ -48,7 +70,7 @@ int my_list_push_front(my_list *list, void *data)
         - Если функция завершается неудачно,
         возвращает нулевое значение
 
-int my_list_push_back(my_list *list, void *data)
+int my_list_push_back(my_list *list, top_type data)
 - Помещает данные в конец списка
         [in] *lst - указатель на структуру my_list
         [in] *data - входные данные
