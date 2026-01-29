@@ -1,10 +1,28 @@
 #ifndef REINCLUDE_PROTECTION_MY_LIST
 #define REINCLUDE_PROTECTION_MY_LIST
+
+typedef union universal_data_type
+{
+    long long as_long;
+    int as_int;
+    double as_double;
+    short as_short;
+    char as_char;
+
+    unsigned long long as_ulong;
+    unsigned int as_uint;
+    unsigned short as_ushort;
+    unsigned char as_uchar;
+
+    void *as_void;
+} top_type;
+
 struct node
 {
-    void *data_holder;
+    top_type data_holder;
     struct node *next;
 };
+
 
 typedef struct node *my_list_iterator;
 typedef const struct node **my_list_head, **my_list_tail;
@@ -12,18 +30,17 @@ typedef const struct node **my_list_head, **my_list_tail;
 struct my_list;
 typedef struct my_list my_list;
 
-
-my_list *my_list_create();
+my_list *my_list_create(void);
 /*******************************************************************************/
 int my_list_destroy(my_list *lst);
 /*******************************************************************************/
 int my_list_revers(my_list *lst);
 /*******************************************************************************/
-int my_list_push_front(my_list *list, void *data);
+int my_list_push_front(my_list *list, top_type data);
 
-int my_list_push_back(my_list *list, void *data);
+int my_list_push_back(my_list *list, top_type data);
 /*******************************************************************************/
-void *my_list_delete_item(my_list *lst, unsigned int pos);
+top_type my_list_delete_item(my_list *lst, unsigned int pos);
 /*******************************************************************************/
 unsigned int my_list_get_len(const my_list *lst);
 
