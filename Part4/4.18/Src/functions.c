@@ -257,3 +257,60 @@ int reverse_sentence()
     putchar('\n');
     return 1;
 }
+
+int reverse_sentence_with_buffer()
+{
+    struct my_string *str;
+    my_list *lst;
+    //my_list_head head;
+    int ch;
+    if ((str = my_str_create(0)) == 0)
+        return 0;
+    if ((lst = my_list_create(str)) == 0)
+        return 0;
+    //head = my_list_get_head(lst);
+    while ((ch = getchar()) != EOF)
+    {
+        if(ch <= ' ')
+        {
+            my_str_pushback_char(str, ' ');
+            if ((my_list_push_front(lst, str) == 0 || 
+            (str = my_str_create(0))) == 0)
+            {
+                if(str)
+                    my_str_destroy(str);
+                my_list_iterator iter = my_list_get_first(lst);
+                for (; iter; iter = iter->next)
+                {
+                    if(iter->data_holder)
+                        my_str_destroy(iter->data_holder);
+                }
+                my_list_destroy(lst);
+                return 0;
+            }
+            continue;
+        }
+        my_str_pushback_char(str, ch);
+    }
+    
+    my_str_destroy(str);
+    
+    for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
+    {
+#ifndef DEBUG_PRINT_print_3times_numbers
+        for (int i = 0; i <= my_str_get_len(iter->data_holder); ++i)
+            {
+                int ch = my_str_get_data(iter->data_holder)[i];
+                printf("\n%3d - %3c", ch, ch);
+            }
+            printf("\n%s", my_str_get_data(iter->data_holder));
+#else
+        printf("%s", my_str_get_data(iter->data_holder));
+#endif
+        
+        my_str_destroy(iter->data_holder);
+    }
+    my_list_destroy(lst);
+    putchar('\n');
+    return 1;
+}
