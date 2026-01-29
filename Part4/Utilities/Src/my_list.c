@@ -8,7 +8,7 @@ struct my_list
     unsigned int length;
 };
 
-my_list *my_list_create()
+my_list *my_list_create(void)
 {
     my_list *lst;
     if (!(lst = malloc(sizeof(my_list))))
@@ -68,7 +68,7 @@ int my_list_revers(my_list *lst)
     return 1;
 }
 
-int my_list_push_front(my_list *list, void *data)
+int my_list_push_front(my_list *list, top_type data)
 {
 
     struct node *tmp;
@@ -76,7 +76,7 @@ int my_list_push_front(my_list *list, void *data)
     if ((tmp = malloc(sizeof(struct node))) == 0)
         return 0;
 
-    tmp->data_holder = data;
+    tmp->data_holder.as_ulong = data.as_ulong;
 
     tmp->next = list->head;
     list->head = tmp;
@@ -87,7 +87,7 @@ int my_list_push_front(my_list *list, void *data)
     return 1;
 }
 
-int my_list_push_back(my_list *list, void *data)
+int my_list_push_back(my_list *list, top_type data)
 {
 
     struct node *tmp;
@@ -95,10 +95,11 @@ int my_list_push_back(my_list *list, void *data)
     if ((tmp = malloc(sizeof(struct node))) == 0)
         return 0;
 
-    tmp->data_holder = data;
+    tmp->data_holder.as_ulong = data.as_ulong;
 
     tmp->next = NULL;
-    list->tail->next = tmp;
+    if(list->tail)
+        list->tail->next = tmp;
     list->tail = tmp;
 
     if (list->head == NULL)
@@ -108,10 +109,10 @@ int my_list_push_back(my_list *list, void *data)
     return 1;
 }
 
-void *my_list_delete_item(my_list *lst, unsigned int pos)
+top_type my_list_delete_item(my_list *lst, unsigned int pos)
 {
     if(pos > lst->length)
-        return NULL;
+        return (top_type){.as_void = NULL};
 
     my_list_iterator *iter;
     iter = &lst->head;
@@ -124,7 +125,7 @@ void *my_list_delete_item(my_list *lst, unsigned int pos)
    
     my_list_iterator tmp = *iter;
     *iter = tmp->next;
-    void *tmp_data = tmp->data_holder;
+    top_type tmp_data = { tmp->data_holder.as_ulong };
     free(tmp);
 
     lst->length -= 1;
