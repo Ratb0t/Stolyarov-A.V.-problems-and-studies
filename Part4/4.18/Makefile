@@ -1,13 +1,17 @@
 
-Executable = main.exe
-Executable_test = test.exe
+Executable := main.exe
+Executable_test := test.exe
 
-HEADERS_DIR = Src/Headers
-UTILS_HEADERS_DIR = /workspaces/Stolyarov-A.V.-problems-and-studies/Part4/Utilities/Headers
-SRC_DIR = Src
-UTILS_SRC_DIR = /workspaces/Stolyarov-A.V.-problems-and-studies/Part4/Utilities/Src
-OBJ_DIR = Build/objects
-BIN_DIR = Build/bin
+
+UTILS_PATH := $(shell pwd | sed 's|/Part4/.*|/Part4|')
+UTILS_PATH_ESCAPED := $(subst $(space),\$(space),$(UTILS_PATH))
+
+HEADERS_DIR := Src/Headers
+UTILS_HEADERS_DIR := $(UTILS_PATH)/Utilities/Headers
+SRC_DIR := Src
+UTILS_SRC_DIR := $(UTILS_PATH)/Utilities/Src
+OBJ_DIR := Build/objects
+BIN_DIR := Build/bin
 
 CC = gcc
 ASM = nasm
@@ -68,17 +72,23 @@ clean :
 	-rm	*.exe
 
 get:
-	echo $(SRC_C)
-	echo =====================================================================
-	echo $(SRC_UTILS_C)
-	echo =====================================================================
-	echo $(SRC_ASM)
-	echo =====================================================================
-	echo main_obj == $(MAIN_OBJ)
-	echo =====================================================================
-	echo test_obj == $(TEST_OBJ)
-	echo =====================================================================
-	echo obj == $(OBJ)
-	echo =====================================================================
+	@echo UTILS_HEADERS_DIR == $(UTILS_PATH)
+	@echo =====================================================================
+	@echo UTILS_HEADERS_DIR == $(UTILS_HEADERS_DIR)
+	@echo =====================================================================
+	@echo UTILS_SRC_DIR == $(UTILS_SRC_DIR)
+	@echo =====================================================================
+	@echo SRC_C == $(SRC_C)
+	@echo =====================================================================
+	@echo SRC_UTILS_C == $(SRC_UTILS_C)
+	@echo =====================================================================
+	@echo SRC_ASM == $(SRC_ASM)
+	@echo =====================================================================
+	@echo MAIN_OBJ == $(MAIN_OBJ)
+	@echo =====================================================================
+	@echo TEST_OBJ == $(TEST_OBJ)
+	@echo =====================================================================
+	@echo OBJ == $(OBJ)
+	@echo =====================================================================
 
 rebuild : clean all

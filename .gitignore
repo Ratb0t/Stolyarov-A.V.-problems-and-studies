@@ -1,4 +1,4 @@
-
+.vscode/
 Part4/**/Build
 
 Part4/**/*.o
