@@ -40,7 +40,7 @@ int test_str()
 int test_list()
 {
     my_list *lst = my_list_create();
-    my_list_push_front(lst, (void *)22);
+    my_list_push_front(lst, (top_type){.as_int = 22});
     my_list_delete_item(lst, 0);
     my_list_destroy(lst);
 

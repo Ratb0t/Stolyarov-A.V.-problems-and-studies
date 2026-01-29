@@ -94,9 +94,9 @@ int print_3times_numbers()
 
             while (iter)
             {
-                if (((struct item *)(iter->data_holder))->data == result)
+                if (((struct item *)(iter->data_holder.as_void))->data == result)
                 {
-                    ((struct item *)(iter->data_holder))->times += 1;
+                    ((struct item *)(iter->data_holder.as_void))->times += 1;
                     break;
                 }
                 else
@@ -111,7 +111,7 @@ int print_3times_numbers()
                 }
                 tmp->times = 1;
                 tmp->data = result;
-                my_list_push_front(lst, tmp);
+                my_list_push_front(lst, (top_type){.as_void = tmp});
             }
         }
     }
@@ -122,9 +122,9 @@ int print_3times_numbers()
     {
         while (iter)
         {
-            if (((struct item *)(iter->data_holder))->times == 3)
+            if (((struct item *)(iter->data_holder.as_void))->times == 3)
             {
-                printf("%d ", ((struct item *)(iter->data_holder))->data);
+                printf("%d ", ((struct item *)(iter->data_holder.as_void))->data);
             }
             iter = iter->next;
         }
@@ -132,8 +132,8 @@ int print_3times_numbers()
     }
 
     for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
-        free(iter->data_holder);
-        
+        free(iter->data_holder.as_void);
+
     my_list_destroy(lst);
     return 1;
 }
@@ -155,11 +155,11 @@ int print_most_common_numbers()
 
             while (iter)
             {
-                if (((struct item *)(iter->data_holder))->data == result)
+                if (((struct item *)(iter->data_holder.as_void))->data == result)
                 {
-                    ((struct item *)(iter->data_holder))->times += 1;
-                    if (most_common < ((struct item *)(iter->data_holder))->times)
-                        most_common = ((struct item *)(iter->data_holder))->times;
+                    ((struct item *)(iter->data_holder.as_void))->times += 1;
+                    if (most_common < ((struct item *)(iter->data_holder.as_void))->times)
+                        most_common = ((struct item *)(iter->data_holder.as_void))->times;
                     break;
                 }
                 else
@@ -174,7 +174,7 @@ int print_most_common_numbers()
                 }
                 tmp->times = 1;
                 tmp->data = result;
-                my_list_push_front(lst, tmp);
+                my_list_push_front(lst, (top_type){.as_void = tmp});
             }
         }
     }
@@ -185,9 +185,9 @@ int print_most_common_numbers()
     {
         while (iter)
         {
-            if (((struct item *)(iter->data_holder))->times == most_common)
+            if (((struct item *)(iter->data_holder.as_void))->times == most_common)
             {
-                printf("%d ", ((struct item *)(iter->data_holder))->data);
+                printf("%d ", ((struct item *)(iter->data_holder.as_void))->data);
             }
             iter = iter->next;
         }
@@ -195,7 +195,7 @@ int print_most_common_numbers()
     }
 
     for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
-        free(iter->data_holder);
+        free(iter->data_holder.as_void);
 
     my_list_destroy(lst);
     return 1;
@@ -203,61 +203,59 @@ int print_most_common_numbers()
 
 int reverse_sentence()
 {
-    struct my_string *str;
-    my_list *lst;
-    //my_list_head head;
+    my_list *lst, *str;
+
     int ch;
-    if ((str = my_str_create(0)) == 0)
+    if ((str = my_list_create()) == 0)
         return 0;
-    if ((lst = my_list_create(str)) == 0)
+    if ((lst = my_list_create()) == 0)
         return 0;
-    //head = my_list_get_head(lst);
+
     while ((ch = getchar()) != EOF)
     {
         if(ch <= ' ')
-        {
-            my_str_pushback_char(str, ' ');
-            if ((my_list_push_front(lst, str) == 0 || 
-            (str = my_str_create(0))) == 0)
+        {   
+            my_list_push_back(str, (top_type){.as_int = ' '});
+
+            if ((my_list_push_front(lst, (top_type){.as_void = str}) == 0 ||
+                 (str = my_list_create())) == 0)
             {
                 if(str)
-                    my_str_destroy(str);
+                    my_list_destroy(str);
                 my_list_iterator iter = my_list_get_first(lst);
                 for (; iter; iter = iter->next)
                 {
-                    if(iter->data_holder)
-                        my_str_destroy(iter->data_holder);
+                    if(iter->data_holder.as_void)
+                        my_list_destroy(iter->data_holder.as_void);
                 }
                 my_list_destroy(lst);
                 return 0;
             }
             continue;
         }
-        my_str_pushback_char(str, ch);
+        my_list_push_back(str, (top_type){.as_int = ch});
     }
     
-    my_str_destroy(str);
+    //my_list_push_front(lst, (top_type){.as_void = str});
+
+    my_list_destroy(str);
     
     for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
     {
-#ifndef DEBUG_PRINT_print_3times_numbers
-        for (int i = 0; i <= my_str_get_len(iter->data_holder); ++i)
-            {
-                int ch = my_str_get_data(iter->data_holder)[i];
-                printf("\n%3d - %3c", ch, ch);
-            }
-            printf("\n%s", my_str_get_data(iter->data_holder));
-#else
-        printf("%s", my_str_get_data(iter->data_holder));
-#endif
-        
-        my_str_destroy(iter->data_holder);
+        for (my_list_iterator cur = my_list_get_first((my_list *)iter->data_holder.as_void); 
+            cur; cur = cur->next)
+        {
+            putchar(cur->data_holder.as_int);
+        }
+
+        my_list_destroy(iter->data_holder.as_void);
     }
     my_list_destroy(lst);
     putchar('\n');
     return 1;
 }
 
+/*
 int reverse_sentence_with_buffer()
 {
     struct my_string *str;
@@ -274,7 +272,7 @@ int reverse_sentence_with_buffer()
         if(ch <= ' ')
         {
             my_str_pushback_char(str, ' ');
-            if ((my_list_push_front(lst, str) == 0 || 
+            if ((my_list_push_front(lst, str) == 0 ||
             (str = my_str_create(0))) == 0)
             {
                 if(str)
@@ -292,9 +290,9 @@ int reverse_sentence_with_buffer()
         }
         my_str_pushback_char(str, ch);
     }
-    
+
     my_str_destroy(str);
-    
+
     for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
     {
 #ifndef DEBUG_PRINT_print_3times_numbers
@@ -307,10 +305,11 @@ int reverse_sentence_with_buffer()
 #else
         printf("%s", my_str_get_data(iter->data_holder));
 #endif
-        
+
         my_str_destroy(iter->data_holder);
     }
     my_list_destroy(lst);
     putchar('\n');
     return 1;
 }
+*/
