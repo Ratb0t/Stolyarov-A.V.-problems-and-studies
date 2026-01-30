@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "my_string.h"
 #include "my_list.h"
+#include "my_macroses.h"
 #define DEBUG_PRINT_print_3times_numbers
 #define DEBUG_PRINT_reverse_sentence1
 struct item
@@ -34,6 +35,11 @@ int print_most_common_numbers();
 
 int reverse_sentence();
 int print_coloumn_sentence();
+int print_numbers_in_sentence();
+
+
+
+
 //Use only on x64 platform 
 extern int check_overflow(int a, int b);
 int test_overflow();
