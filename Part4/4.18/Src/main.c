@@ -6,6 +6,7 @@ int main()
     //print_3times_numbers();
     //print_most_common_numbers();
     //struct my_string *s;
-    reverse_sentence();
+    //reverse_sentence();
+    print_coloumn_sentence();
     return 0;
 }
