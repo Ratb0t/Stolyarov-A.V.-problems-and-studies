@@ -40,8 +40,18 @@ int test_str()
 int test_list()
 {
     my_list *lst = my_list_create();
-    my_list_push_front(lst, (top_type){.as_int = 22});
-    my_list_delete_item(lst, 0);
+    for(int i = 0; i <= 20; ++i)
+        my_list_push_front(lst, (top_type){.as_int = i});
+
+
+    my_list_tail tail = my_list_get_tail(lst);
+    my_list_head head = my_list_get_tail(lst);
+    for (int i = 0; i <= 20; ++i)
+        printf("%d\n",my_list_delete_item(lst, my_list_get_len(lst) - 1).as_int);
+
+    printf("%p\n", *tail);
+    printf("%p\n", *head);
+
     my_list_destroy(lst);
 
     return 1;
@@ -50,7 +60,7 @@ int test_list()
 int main()
 {
 
-    test_str();
+    test_list();
 
     return 0;
 }
