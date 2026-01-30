@@ -111,16 +111,24 @@ int my_list_push_back(my_list *list, top_type data)
 
 top_type my_list_delete_item(my_list *lst, unsigned int pos)
 {
-    if(pos > lst->length)
+    if(pos >= lst->length)
         return (top_type){.as_void = NULL};
+
+    int update_tail = 0;
+    if(pos == lst->length - 1)
+        update_tail = 1;
 
     my_list_iterator *iter;
     iter = &lst->head;
     
     while (pos)
     {
+        if (pos == 1 && update_tail)
+            lst->tail = (*iter);
+            
         iter = &((*iter)->next);
         --pos;
+        
     }
    
     my_list_iterator tmp = *iter;
@@ -129,6 +137,9 @@ top_type my_list_delete_item(my_list *lst, unsigned int pos)
     free(tmp);
 
     lst->length -= 1;
+    if (lst->head == NULL)
+        lst->tail = NULL;
+
     return tmp_data;
 }
 
