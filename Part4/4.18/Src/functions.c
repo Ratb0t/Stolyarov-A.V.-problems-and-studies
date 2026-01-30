@@ -255,6 +255,71 @@ int reverse_sentence()
     return 1;
 }
 
+int print_coloumn_sentence()
+{
+    my_list *lst, *str;
+
+    int ch, most_longer_word = 0;
+    if ((str = my_list_create()) == 0)
+        return 0;
+    if ((lst = my_list_create()) == 0)
+        return 0;
+
+    while ((ch = getchar()) != EOF)
+    {
+        if (ch <= ' ')
+        {
+            most_longer_word = Max(most_longer_word, my_list_get_len(str));
+            if ((my_list_push_back(lst, (top_type){.as_void = str}) == 0 ||
+                 (str = my_list_create())) == 0)
+            {
+                if (str)
+                    my_list_destroy(str);
+                my_list_iterator iter = my_list_get_first(lst);
+                for (; iter; iter = iter->next)
+                {
+                    if (iter->data_holder.as_void)
+                        my_list_destroy(iter->data_holder.as_void);
+                }
+                my_list_destroy(lst);
+                return 0;
+            }
+            continue;
+        }
+        my_list_push_back(str, (top_type){.as_int = ch});
+    }
+
+    // my_list_push_front(lst, (top_type){.as_void = str});
+
+    my_list_destroy(str);
+
+    int i = 0;
+    while (most_longer_word)
+    {
+
+        for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
+        {
+            my_list_iterator cur = my_list_get_item(iter->data_holder.as_void, i);
+            if(cur)
+            {
+                putchar(cur->data_holder.as_int);
+            }
+            else
+                putchar(' ');
+        }
+        putchar('\n');
+        ++i;
+        --most_longer_word;
+    }
+
+    for (my_list_iterator iter = my_list_get_first(lst); iter; iter = iter->next)
+        my_list_destroy(iter->data_holder.as_void);
+
+    my_list_destroy(lst);
+    putchar('\n');
+    return 1;
+}
+
 /*
 int reverse_sentence_with_buffer()
 {

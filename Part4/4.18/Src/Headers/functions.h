@@ -33,6 +33,7 @@ int print_3times_numbers();
 int print_most_common_numbers();
 
 int reverse_sentence();
+int print_coloumn_sentence();
 //Use only on x64 platform 
 extern int check_overflow(int a, int b);
 int test_overflow();
