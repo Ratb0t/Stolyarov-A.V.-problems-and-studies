@@ -320,6 +320,78 @@ int print_coloumn_sentence()
     return 1;
 }
 
+
+
+
+int print_numbers_in_sentence()
+{
+    my_list *lst, *str;
+
+    int ch, most_longer_word = 0;
+    if ((str = my_list_create()) == 0)
+        return 0;
+    if ((lst = my_list_create()) == 0)
+        return 0;
+
+    int string_size = 0;
+    putchar('>');
+    while ((ch = getchar()) != EOF)
+    {
+        //S0me st1ng 1n wi24120th num28467b3rs 1234567
+        if(Is_number(ch))
+        {
+            my_list_push_back(str, (top_type){.as_int = ch});
+            continue;
+        }
+        if((string_size = my_list_get_len(str)))
+        {
+            most_longer_word = Max(most_longer_word, string_size);
+            if ((my_list_push_back(lst, (top_type){.as_void = str}) == 0 ||
+                (str = my_list_create())) == 0)
+            {
+                if (str)
+                    my_list_destroy(str);
+                my_list_iterator iter = my_list_get_first(lst);
+                for (; iter; iter = iter->next)
+                {
+                    if (iter->data_holder.as_void)
+                        my_list_destroy(iter->data_holder.as_void);
+                }
+                my_list_destroy(lst);
+                return 0;
+            }
+        }
+        if(ch == '\n')
+        {
+            for (my_list_iterator iter = my_list_get_first(lst); iter; )
+            {
+                //printf("%d \n", my_list_get_len(lst));
+                string_size = (int)my_list_get_len(iter->data_holder.as_void);
+                for (my_list_iterator cur = my_list_get_first(iter->data_holder.as_void);
+                string_size == most_longer_word && cur; cur = cur->next)
+                {
+                    putchar(cur->data_holder.as_int);
+                    if(cur->next == NULL)
+                        putchar(' ');
+                }
+                iter = iter->next;
+                my_list_destroy(my_list_delete_item(lst, 0).as_void);
+            }
+            putchar(ch); putchar('>');
+            most_longer_word = 0;
+            //printf("%p \n", my_list_get_first(lst));
+            //printf("%p \n", my_list_get_last(lst));
+        }
+    }
+
+    // my_list_push_front(lst, (top_type){.as_void = str});
+
+    my_list_destroy(str);
+    my_list_destroy(lst);
+    putchar('\n');
+    return 1;
+}
+
 /*
 int reverse_sentence_with_buffer()
 {
