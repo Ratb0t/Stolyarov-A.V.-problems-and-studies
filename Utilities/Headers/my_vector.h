@@ -2,7 +2,7 @@
 #define REINCLUDE_PROTECTION_MY_VECTOR
 
 #include "my_types.h"
-
+#include "utilities_functions.h"
 #define DEFAULT_CAPACITY 16
 
 typedef struct my_vector my_vector;
