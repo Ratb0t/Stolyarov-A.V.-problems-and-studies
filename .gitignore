@@ -1,6 +1,5 @@
 .vscode/
-Part4/**/Build
-
+/**/Build
 Part4/**/*.o
 Part4/**/*.exe
 
@@ -8,3 +7,4 @@ Part4/**/*.testdata
 
 Part4/**/*.log
 Part4/prev.md
+Utilities/Makefile
