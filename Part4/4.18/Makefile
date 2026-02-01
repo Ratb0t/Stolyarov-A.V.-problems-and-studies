@@ -3,8 +3,8 @@ Executable := main.exe
 Executable_test := test.exe
 
 
-UTILS_PATH := $(shell pwd | sed 's|/Part4/.*|/Part4|')
-UTILS_PATH_ESCAPED := $(subst $(space),\$(space),$(UTILS_PATH))
+UTILS_PATH := $(shell pwd | sed 's|/Stolyarov-A.V.-problems-and-studies/.*|/Stolyarov-A.V.-problems-and-studies|')
+#UTILS_PATH_ESCAPED := $(subst $(space),\$(space),$(UTILS_PATH))
 
 HEADERS_DIR := Src/Headers
 UTILS_HEADERS_DIR := $(UTILS_PATH)/Utilities/Headers
@@ -15,7 +15,7 @@ BIN_DIR := Build/bin
 
 CC = gcc
 ASM = nasm
-HEADERS_CFLAGS = -I$(HEADERS_DIR)/ -I$(UTILS_HEADERS_DIR)/
+HEADERS_CFLAGS = -I$(HEADERS_DIR) -I$(UTILS_HEADERS_DIR)
 CFLAGS = -g -Wall -MD -c $(HEADERS_CFLAGS)/
 ASMFLAGS = -f elf64 -g -F dwarf
 DEFINITIONS = #-DDEBUG

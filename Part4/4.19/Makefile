@@ -1,7 +1,7 @@
 Executable := main.exe
 Executable_test := test.exe
 
-UTILS_PATH := $(shell pwd | sed 's|/Part4/.*|/Part4|')
+UTILS_PATH := $(shell pwd | sed 's|/Stolyarov-A.V.-problems-and-studies/.*|/Stolyarov-A.V.-problems-and-studies|')
 #UTILS_PATH := $(subst $(space),\$(space), $(UTILS_NO_ESCAPED_PATH))
 
 UTILS_HEADERS_DIR := $(UTILS_PATH)/Utilities/Headers
@@ -11,7 +11,7 @@ BIN_DIR := Build/bin
 
 CC := gcc
 HEADERS_CFLAGS = -I$(UTILS_HEADERS_DIR)
-CFLAGS := -g -Wall -MD -c $(HEADERS_CFLAGS)
+CFLAGS := -g -Wall -MMD -MP -c $(HEADERS_CFLAGS)
 DEFINITIONS :=
 
 SRC_C = $(wildcard *.c)
@@ -52,6 +52,7 @@ clean :
 
 
 get:
+	@echo =====================================================================
 	@echo UTILS_PATH == $(UTILS_PATH)
 	@echo =====================================================================
 	@echo UTILS_HEADERS_DIR == $(UTILS_HEADERS_DIR)
