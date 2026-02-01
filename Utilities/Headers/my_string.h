@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "my_macroses.h"
+#include "utilities_functions.h"
 #define CAPACITY_FACTOR 1.5
 #define STRING_RESIZE_THRESHOLD 70
 #define PERCENT_OF(n1, n2)(n1) * 100 / (n2)
@@ -14,8 +15,6 @@
 
 struct my_string;
 
-int my_memcpy(void *dest, const void *src, size_t n);
-int my_strlen(const char *buf);
 int my_str_get_len(const struct my_string *str);
 const char *my_str_get_data(const struct my_string *str);
 
