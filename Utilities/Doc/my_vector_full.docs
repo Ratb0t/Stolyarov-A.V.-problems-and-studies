@@ -1,0 +1,173 @@
+#include "my_types.h"
+#include "my_macroses.h"
+#include "utilities_functions.h"
+
+Структура my_vector
+    Структура описывающая вектор 
+    Поля данных
+    * unsigned char * buf
+    * unsigned char * end
+    * unsigned char * capacity
+    * int type_size
+
+Подробное описание
+Структура содержит в себе необходимые поля для создания контейнера vector 
+unsigned char* my_vector::buf
+    Указатель на выделенный буффер 
+
+unsigned char* my_vector::capacity
+    Указатель за последний элемент выделенной памяти 
+
+unsigned char* my_vector::end
+    Указатель за последний элемент буфера 
+
+int my_vector::type_size
+    Размер переданного типа данных 
+
+
+Объявления и описания членов структуры находятся в файле:
+my_vector.h
+
+
+Типы
+typedef struct my_vector my_vector
+    Синоним для my_vector
+    Тип для удобства использования 
+
+typedef void* my_vector_iterator
+    
+    Итератор вектора 
+    Указатель на данные в векторе 
+
+Функции
+my_vector* my_vector_create (int  data_type_size)
+    Создает контейнер vector. 
+    Создает контейнер vector. Для освобождения ресурсов 
+    необходимо вызывать функцию my_vector_destroy 
+    
+    Аргументы:
+    [in] data_type_size - Размер данных которые будет хранить вектор 
+    
+    Возвращает
+    my_vector* Указатель на созданный контейнер vector 
+
+
+int my_vector_destroy (my_vector *  vec)
+    Уничтожает контейнер vector. 
+    Освобождает ресурсы, выделенные при создании вектора с помощью my_vector_create 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    
+    Возвращает
+    int Не нулевое значение 
+
+
+int my_vector_get_data (const my_vector *  vec, unsigned int  pos, top_type *  data)
+    Получить данные из вектора 
+    Получает получить чистые данные из вектора 
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    [in] pos - Индекс элемента 
+    [out] data - Выходные данные 
+    
+    Возвращает
+    Если функция выполнена успешно, возвращает не нулевое значение 
+    Если функция выполнена неудачно, возвращает 0 
+
+my_vector_iterator my_vector_get_end (const my_vector *  vec)
+    Получить конец вектора 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    
+    Возвращает
+    my_vector_iterator Итератор за последний элемент вектора 
+
+my_vector_iterator my_vector_get_first (const my_vector *  vec)
+    Получить первый элемент вектора 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    
+    Возвращает
+    my_vector_iterator Итератор на первый элемент вектора 
+
+my_vector_iterator my_vector_get_item (const my_vector *  vec, unsigned int  pos)
+    Получить итератор указывающий на данные вектора 
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    [in] pos - Индекс элемента
+    
+    Возвращает
+    my_vector_iterator Итератор указывающий на данные в векторе
+    Возвращаемые значения
+    Если функция выполнена успешно возвращает не нулевое значение 
+    Если функция выполнена неудачно NULL 
+
+int my_vector_get_size (my_vector *  vec)
+    Получить размер вектора 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    
+    Возвращает
+    int Количество элементов в векторе 
+
+int my_vector_insert_data (my_vector *  vec, unsigned int  pos, top_type  data)
+    Вставка данных 
+    Вставляет данные в позицию pos, которая явялется индексом. 
+    Все данные включая индекс смещаются на 1 ближе к концу 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    [in] pos - Индекс элемента на место которого происходит вставка. 
+    [in] data - Вставляемые данные 
+    
+    Возвращает
+    int Не нулевое значение 
+
+int my_vector_iter_next (const my_vector *  vec, my_vector_iterator *  it)
+    Перейти к следующему элементу вектора 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create, 
+    который использовался для инициализации итератора 
+    [in,out] it Указатель на итератор содержащий инициализированный указатель 
+    
+    Возвращает
+    int Не нулевое значение 
+    
+    Предупреждения
+    Если it не был инициализирован должным образом. Полученный адрес не валиден 
+
+int my_vector_push_back (my_vector *  vec, top_type  data)
+    Вставка данных в конец вектора 
+    Вставляет данные в конец вектора 
+    
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    [in] data - Вставляемые данные 
+    
+    Возвращает
+    int Не нулевое значение 
+
+int my_vector_push_front (my_vector *  vec, top_type  data)
+    Вставка данных в начало вектора 
+    Вставляет данные в начало вектора. Все данные включая индекс смещаются на 1 ближе к концу 
+
+    Аргументы:
+    [in] vec - Указатель на vector возвращенный функцией my_vector_create 
+    [in] data - Вставляемые данные 
+    
+    Возвращает
+    int Не нулевое значение 
+
+int my_vector_set_data (my_vector *  vec, unsigned int  pos, top_type  data)
+Не реализована 
+    Аргументы:
+    vec 
+    pos 
+    data 
+    Возвращает
+    int 
