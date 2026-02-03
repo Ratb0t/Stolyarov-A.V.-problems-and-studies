@@ -23,7 +23,7 @@ int my_vector_push_front(my_vector *vec, top_type data);
 int my_vector_set_data(my_vector *vec, unsigned int pos, top_type data);
 /*******************************************************************************/
 my_vector_iterator my_vector_get_first(const my_vector *vec);
-my_vector_iterator my_vector_get_last(const my_vector *vec);
+my_vector_iterator my_vector_get_end(const my_vector *vec);
 my_vector_iterator my_vector_get_item(const my_vector *vec, unsigned int pos);
 int my_vector_iter_next(const my_vector *vec, my_vector_iterator *it);
 int my_vector_get_data(const my_vector *vec, unsigned int pos, top_type *data);
