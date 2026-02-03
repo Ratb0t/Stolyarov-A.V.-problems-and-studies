@@ -93,7 +93,7 @@ int print_3times_numbers()
         {
             iter = my_vector_get_first(v);
 
-            while (iter != my_vector_get_last(v))
+            while (iter != my_vector_get_end(v))
             {
                 if ((*(struct item **)(iter))->data == result)
                 {
@@ -103,7 +103,7 @@ int print_3times_numbers()
                 else
                     my_vector_iter_next(v, &iter);
             }
-            if (iter == my_vector_get_last(v))
+            if (iter == my_vector_get_end(v))
             {
                 struct item* tmp;
                 if (!(tmp = malloc(sizeof(struct item))))
@@ -121,7 +121,7 @@ int print_3times_numbers()
 
     if(iter)
     {
-        while (iter != my_vector_get_last(v))
+        while (iter != my_vector_get_end(v))
         {
             if ((*(struct item **)(iter))->times == 3)
             {
@@ -132,7 +132,7 @@ int print_3times_numbers()
         putchar('\n');
     }
 
-    for (iter = my_vector_get_first(v); iter != my_vector_get_last(v); my_vector_iter_next(v, &iter))
+    for (iter = my_vector_get_first(v); iter != my_vector_get_end(v); my_vector_iter_next(v, &iter))
         free(*(struct item **)iter);
 
     my_vector_destroy(v);
@@ -155,7 +155,7 @@ int print_most_common_numbers()
         {
             iter = my_vector_get_first(v);
 
-            while (iter != my_vector_get_last(v))
+            while (iter != my_vector_get_end(v))
             {
                 if ((*(struct item **)(iter))->data == result)
                 {
@@ -167,7 +167,7 @@ int print_most_common_numbers()
                 else
                     my_vector_iter_next(v, &iter);
             }
-            if (iter == my_vector_get_last(v))
+            if (iter == my_vector_get_end(v))
             {
                 struct item *tmp;
                 if (!(tmp = malloc(sizeof(struct item))))
@@ -185,7 +185,7 @@ int print_most_common_numbers()
 
     if (iter)
     {
-        while (iter != my_vector_get_last(v))
+        while (iter != my_vector_get_end(v))
         {
             if ((*(struct item **)(iter))->times == most_common)
             {
@@ -196,7 +196,7 @@ int print_most_common_numbers()
         putchar('\n');
     }
 
-    for (iter = my_vector_get_first(v); iter != my_vector_get_last(v); my_vector_iter_next(v, &iter))
+    for (iter = my_vector_get_first(v); iter != my_vector_get_end(v); my_vector_iter_next(v, &iter))
         free(*(struct item**)iter);
 
     my_vector_destroy(v);
@@ -225,7 +225,7 @@ int reverse_sentence()
                 if(str)
                     my_vector_destroy(str);
                 iter = my_vector_get_first(lst);
-                for (; iter != my_vector_get_last(lst); my_vector_iter_next(lst, &iter))
+                for (; iter != my_vector_get_end(lst); my_vector_iter_next(lst, &iter))
                 {
                     if (*(my_vector **)iter)
                         my_vector_destroy(*(my_vector **)iter);
@@ -242,10 +242,10 @@ int reverse_sentence()
 
     my_vector_destroy(str);
 
-    for (iter = my_vector_get_first(lst); iter != my_vector_get_last(lst); my_vector_iter_next(lst, &iter))
+    for (iter = my_vector_get_first(lst); iter != my_vector_get_end(lst); my_vector_iter_next(lst, &iter))
     {
         for (my_vector_iterator cur = my_vector_get_first(*(my_vector **)iter);
-             cur != my_vector_get_last(*(my_vector **)iter); my_vector_iter_next(*(my_vector **)iter, &cur))
+             cur != my_vector_get_end(*(my_vector **)iter); my_vector_iter_next(*(my_vector **)iter, &cur))
         {
             putchar(*(char*)cur);
         }
@@ -279,7 +279,7 @@ int print_coloumn_sentence()
                 if (str)
                     my_vector_destroy(str);
                 iter = my_vector_get_first(lst);
-                for (; iter != my_vector_get_last(lst); my_vector_iter_next(lst, &iter))
+                for (; iter != my_vector_get_end(lst); my_vector_iter_next(lst, &iter))
                 {
                     if (*(my_vector **)iter)
                         my_vector_destroy(*(my_vector **)iter);
@@ -301,7 +301,7 @@ int print_coloumn_sentence()
     while (most_longer_word)
     {
 
-        for (iter = my_vector_get_first(lst); iter != my_vector_get_last(lst); my_vector_iter_next(lst, &iter))
+        for (iter = my_vector_get_first(lst); iter != my_vector_get_end(lst); my_vector_iter_next(lst, &iter))
         {
             my_vector_iterator cur = my_vector_get_item(*(my_vector **)iter, i);
             if (cur)
@@ -316,7 +316,7 @@ int print_coloumn_sentence()
         --most_longer_word;
     }
 
-    for (iter = my_vector_get_first(lst); iter != my_vector_get_last(lst); my_vector_iter_next(lst, &iter))
+    for (iter = my_vector_get_first(lst); iter != my_vector_get_end(lst); my_vector_iter_next(lst, &iter))
         my_vector_destroy(*(my_vector **)iter);
 
     my_vector_destroy(lst);
@@ -354,7 +354,7 @@ int print_numbers_in_sentence()
                 if (str)
                     my_vector_destroy(str);
                 iter = my_vector_get_first(lst);
-                for (; iter != my_vector_get_last(lst); my_vector_iter_next(lst, &iter))
+                for (; iter != my_vector_get_end(lst); my_vector_iter_next(lst, &iter))
                 {
                     if (*(my_vector **)iter)
                         my_vector_destroy(*(my_vector **)iter);
@@ -365,17 +365,17 @@ int print_numbers_in_sentence()
         }
         if(ch == '\n')
         {
-            for (iter = my_vector_get_first(lst); iter != my_vector_get_last(lst);)
+            for (iter = my_vector_get_first(lst); iter != my_vector_get_end(lst);)
             {
                 //printf("%d \n", my_list_get_size(lst));
                 string_size = (int)my_vector_get_size(*(my_vector **)iter);
                 for (my_vector_iterator cur = my_vector_get_first(*(my_vector **)iter);
-                     string_size == most_longer_word && cur != my_vector_get_last(*(my_vector **)iter)
+                     string_size == most_longer_word && cur != my_vector_get_end(*(my_vector **)iter)
                      ; )
                 {
                     putchar(*(char*)cur);
                     my_vector_iter_next(*(my_vector **)iter, &cur);
-                    if (cur == my_vector_get_last(*(my_vector **)iter))
+                    if (cur == my_vector_get_end(*(my_vector **)iter))
                         putchar(' ');
                 }
                 my_vector_destroy(*(my_vector **)iter);
@@ -384,7 +384,7 @@ int print_numbers_in_sentence()
             putchar(ch); putchar('>');
             most_longer_word = 0;
             //printf("%p \n", my_list_get_first(lst));
-            //printf("%p \n", my_list_get_last(lst));
+            //printf("%p \n", my_list_get_end(lst));
         }
     }
 
