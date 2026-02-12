@@ -30,3 +30,88 @@ Hell
 escape происходил выход из подменю. Выбор осуществлялся стрелками, выбранный пункт меню инвертировался
 в цвете с помощью GetConsoleScreenBufferInfo и SetConsoleScreenBufferInfo, позиция курсора задавалась с 
 помощью SetConsoleCursorPosition
+
+4.28
+a) typedef int (*intp)[10];
+b) typedef double (*dblp)[10][2];
+c) typedef char (*charp)[5];
+d) typedef char *(*charpp)[5];
+e) typedef struct item *(*stipa)[3];
+f) typedef struct item *(*stip);
+
+4.29
+a) void (*pf)();
+b) int (*pf)(int);
+c) void *(*pf)(int);
+d) double (*pf)(int, const char *);
+e) void (*pf)(double (*)[3]);
+f) double (*(*pf)(int, double (*)[3]))[3];
+
+4.30
+Сложность не в описании указателя, а в вычленения из кучи текста
+необходимой информации для ее выполнения
+int (*p)(const char *, const char *);
+
+4.31
+a) int *(*f(int))[10];
+f - функция принимающая один параметр int возвращающая 
+указатель на массив из 10 указателей на int
+
+typedef int *intptr;
+typedef intptr (*int10ptr)[10];
+int10ptr f(int);
+
+
+b) void (*fpvec[15])(int, void(*)(int, void*), void*);
+fpvec - массив из 15 указателей на функции принимающие 3 параметра
+  1. int, 
+  2. указатель на функцию принимающую int и не типизированный
+  указатель (void*), функция ничего не возвращает
+  3. не типизированный указатель (void*)
+функция ничего не возвращает
+
+typedef void *untypeptr;
+typedef void (*vPFivp)(int, untypeptr);
+typedef void (*pf)(int, vPFivp, untypeptr);
+typedef pf fpvec[15];
+
+
+
+c) double (*(*repfptr)(double(*) (double))) (double);
+
+repfptr - указатель на функцию, 
+  которая принимает параметром
+  указатель на функцию, которая в свою очередь 
+  принимает double и возвращает double
+возвращающая указатель на функцию принимающую 
+параметром double, которая возвращает double
+
+typedef double (*pfd)(double);
+typedef pfd(*repfptr)(pfd);
+
+
+d) int (*(*fvecpos)[4])(void (*)(double*));
+fvecpos - указатель на массив указателей на функцию,
+которая принимает параметром 
+  указатель на функцию, в свою очередь эта 
+  функция принимает указатель на double
+  и ничего не возвращает
+возвращающей int
+
+typedef void (*vdbl_fp)(double*);
+typedef int (*int_fp)(vdbl_fp);
+typedef int_fp (*fvecpos)[4];
+
+4.32
+typedef double (*d3vptr)[3];
+typedef d3vptr (*search_for_vec_fptr)(d3vptr, int, double);
+search_for_vec_fptr set_sr_func(int num, search_for_vec_fptr func)
+
+d3vptr -> double (*)[3];
+search_for_vec_fptr -> (*(*func)(double (*)[3], int, double))[3];
+
+search_for_vec_fptr set_sr_func();
+d3vptr (*set_sr_func())(d3vptr, int, double);
+
+Ответ
+double (*(*set_sr_func(int num,double (*(*func)(double (*)[3], int, double))[3]))(double (*)[3], int, double))[3];
