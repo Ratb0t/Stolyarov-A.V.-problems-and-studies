@@ -10,6 +10,7 @@ section .text
     global getchar
     global mmap
     global munmap
+    global putchar
 _start:
     call main
     call _exit
@@ -50,12 +51,21 @@ print_int:
 
 print:
     push rdi
-    call strlen ; ret count in rdx
-    pop rsi ; buf
-    mov rax, 1 ; write
-    mov rdi, 1 ;stdout
+    call strlen     ; ret count in rdx
+    pop rsi         ; buf
+    mov rax, 1      ; write
+    mov rdi, 1      ;stdout
     syscall
-    ret
+    ret             ; in rax count written bytes
+
+putchar:
+    mov [rsp - 8], rdi
+    mov rdx, 1                  ; count
+    lea rsi, qword [rsp - 8]    ; buf
+    mov rax, 1                  ; write
+    mov rdi, 1                  ; stdout
+    syscall
+    ret                         ; in rax count written bytes
 
 strlen:
     xor rax, rax
