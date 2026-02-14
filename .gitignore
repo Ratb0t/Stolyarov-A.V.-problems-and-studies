@@ -2,6 +2,7 @@
 /**/Build
 
 /**/*.exe
+/**/*.o
 
 /**/*.testdata
 
