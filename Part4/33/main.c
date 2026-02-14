@@ -1,6 +1,7 @@
 extern int print_int(int val);
 extern int print(const char* str);
 extern int getchar();
+extern int putchar(int c);
 extern void *mmap(int page_count);
 extern int munmap(void* maped_address, int page_count);
 
@@ -54,7 +55,7 @@ void *pop(stack *st)
 
     return head;
 }
-
+/*1+2*3+((4+5)*(6+7*8)+(9+10)*16/4)*/
 int main()
 {
     stack operators, results;
@@ -79,6 +80,17 @@ int main()
     int j = 0, ch;
     while ((ch = getchar()) != EOF && ch != '\n' && j < string_buf_size)
     {
+        /**/
+        if (ch != ' ' && (ch < '(' || ch > '+') && 
+            (ch < '0' || ch > '9') && ch != '-' && ch != '/')
+        {
+            print("An unknown symbol was encountered: ");
+            putchar(ch);
+            putchar('\n');
+            munmap(buf, 1);
+            return 1;
+        }
+
         switch (ch)
         {
         case ' ':
