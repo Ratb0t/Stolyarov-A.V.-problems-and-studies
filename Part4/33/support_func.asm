@@ -71,6 +71,7 @@ strlen:
     xor rax, rax
     mov rdx, rdi
     cld
+    mov ecx, -1
     repne scasb
     sub rdi, rdx
     mov rdx, rdi
