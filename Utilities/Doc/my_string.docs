@@ -34,7 +34,9 @@ const char *my_str_get_data(const struct my_string *str)
 
 struct my_string *my_str_create(const char *buf)
  - Создает объект типа struct my_string
-        [in] *buf - Строка, завершающаяся символом NULL
+        [in, opt] *buf - Строка, завершающаяся символом NULL
+        Может быть NULL, тогда создастся пустая строка с
+        capacity по умолчанию
 
         Возвращаемые значения:
         - Если функция выполнена успешно, возвращает не нулевое значение
