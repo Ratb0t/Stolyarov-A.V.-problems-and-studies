@@ -186,6 +186,6 @@ int my_str_pushback_char(struct my_string *str, char ch)
 
     str->buf[str->length] = ch;
     str->length += 1;
-    str->buf[str->length + 1] = 0;
+    str->buf[str->length] = 0;
     return 1;
 }
