@@ -9,9 +9,6 @@
 #define CAPACITY_FACTOR 1.5
 #define STRING_RESIZE_THRESHOLD 70
 
-#ifdef DEBUG
-#define LONG_STRING_FOR_TESTS
-#endif
 
 struct my_string;
 
@@ -29,9 +26,8 @@ int my_str_set_string(struct my_string *str, const char *buf);
 
 int my_str_destroy(struct my_string *str);
 
-#ifndef LONG_STRING_FOR_TESTS
+#ifndef DEBUG
 #define DEFAULT_CAPACITY_SIZE 256
-#define VERY_LONG_STRING "Hello world!!!\n"
 #else
 #define DEFAULT_CAPACITY_SIZE 5
 #include <stdio.h>
