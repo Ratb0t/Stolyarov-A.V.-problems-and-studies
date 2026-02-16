@@ -9,8 +9,7 @@
 #define CAPACITY_FACTOR 1.5
 #define STRING_RESIZE_THRESHOLD 70
 
-
-struct my_string;
+typedef struct my_string my_string;
 
 int my_str_get_len(const struct my_string *str);
 const char *my_str_get_data(const struct my_string *str);
