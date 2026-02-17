@@ -16,5 +16,14 @@ typedef union universal_data_type
     void *as_void;
 } top_type;
 
+typedef unsigned char       BYTE;
+typedef unsigned short      WORD;
+typedef unsigned long       DWORD;
+typedef unsigned long long  QWORD;
+
+typedef unsigned char       *PBYTE;
+typedef unsigned short      *PWORD;
+typedef unsigned long       *PDWORD;
+typedef unsigned long long  *PQWORD;
 
 #endif /*!REINCLUDE_PROTECTION_MY_TYPES*/
