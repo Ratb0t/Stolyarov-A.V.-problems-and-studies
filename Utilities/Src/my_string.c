@@ -57,6 +57,7 @@ struct my_string *my_str_create(const char *buf)
     {
         str->buf = malloc(str->capacity);
         str->length = 0;
+        str->buf[0] = 0;
         if (!str->buf)
         {
             free(str);
