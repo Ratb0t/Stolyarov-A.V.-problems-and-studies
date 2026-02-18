@@ -19,11 +19,37 @@ enum codes
 {
     quite,
     ok,
+    add_char,
     print_input,
     quotes_error,
     alloc_error,
-    backslash_error
+    backslash_error,
+    start_dialog_error
 };
+
+typedef struct analyzator
+{
+    my_string *word;
+    my_list *words;
+    int ch;
+    int prev_char;
+    int quotes;
+    int code;
+} analyzator;
+
+void init_analizator(analyzator *alzr)
+{
+    alzr->ch = 0;
+    alzr->prev_char = 0;
+    alzr->quotes = 0;
+    alzr->code = ok;
+    if(!(alzr->word = my_str_create(NULL)))
+        alzr->code = alloc_error;
+    if(!(alzr->words = my_list_create()))
+        alzr->code = alloc_error;
+
+    return;
+}
 
 void out_input(my_list *lst)
 {
@@ -37,16 +63,16 @@ void out_input(my_list *lst)
     return;
 }
 
-int codes_handler(int code, my_list *lst)
+int dialog_codes_handler(analyzator *alzr)
 {
-    switch (code)
+    switch (alzr->code)
     {
     case ok:
         return 1;
     case quite:
         return 0;
     case print_input:
-        out_input(lst);
+        out_input(alzr->words);
         break;
     case quotes_error:
         printf("Error: unmatched quotes\n");
@@ -84,94 +110,157 @@ void clear_stdin(int ch)
     return;
 }
 
-int dialog(my_string **word, my_list *words)
+void set_analyzator_code(analyzator *alzr)
 {
-    int code = ok;
-    int ch, prev_char = 0;
-    int quotes = 0;
-    putchar('>');
-    while (prev_char != '\n' && (ch = getchar()) != EOF)
-    {
-        if(prev_char == '\\' && (ch != '\\' || ch != '\"'))
-        {
-            if(ch != '\n')
-                clear_stdin('\n');
-            return backslash_error;
-        }
+    if (alzr->ch == EOF)
+        alzr->code = quite;
+    if (my_list_get_len(alzr->words))
+        alzr->code = print_input;
+    if (alzr->quotes)
+        alzr->code = quotes_error;
 
-        switch (ch)
-        {
-        case '\"':
-        {
-            if(prev_char == '\\')
-                break;
-            ++quotes;
-            continue;
-        }
-            break;
-        case '\\':
-            if(prev_char != '\\')
-            {
-                prev_char = ch;
-                continue;
-            }
-            break;
-        case '\t':
-        case ' ':
-        case '\n':
-        {
-            if (!(quotes & 1))
-            {
-                if (my_str_get_len(*word) || quotes)
-                {
-                    my_list_push_back(words, (top_type){.as_void = *word});
-                    *word = my_str_create(0);
-                    if(!word)
-                    {
-                        if (ch != '\n')
-                            clear_stdin('\n');
-                        return alloc_error;
-                    }
-                }
-                quotes = 0;
-                prev_char = ch;
-                continue;
-            }
-        }
-            break;
-        default:
-            break;
-        }
-        prev_char = ch;
-
-        my_str_pushback_char(*word, ch);
-    }
-    
-    if(ch == EOF) code = quite;
-    if(my_list_get_len(words)) code = print_input;
-    if (quotes) code = quotes_error;
-
-    return code;
+    return;
 }
 
-int end_dialog(my_string **word, my_list **words)
+int dispatch_start_dialog_error(analyzator *alzr)
 {
-    clear_list(*words);
-    my_str_destroy(*word);
-    my_list_destroy(*words);
-    *word = NULL;
-    *words = NULL;
+    dialog_codes_handler(alzr);
+    printf("Try again? y/n: ");
+    if((getchar() | 0x20) == 'y')
+    {
+        clear_stdin('\n');
+        return ok;
+    }
+    return quite;
+}
+
+int insetr_word(analyzator *alzr)
+{
+    if (!(alzr->quotes & 1))
+    {
+        if (my_str_get_len(alzr->word) || alzr->quotes)
+        {
+            my_list_push_back(alzr->words, (top_type){.as_void = alzr->word});
+            alzr->word = my_str_create(0);
+            if (!alzr->word)
+            {
+                if (alzr->ch != '\n')
+                    clear_stdin('\n');
+                alzr->code = alloc_error;
+                return quite;
+            }
+        }
+        alzr->quotes = 0;
+    }
+    return ok;
+}
+
+int escape_sequence_analysis(analyzator *alzr)
+{
+    //printf("prev_char == %d ch == %d\n", alzr->prev_char, alzr->ch);
+    if (alzr->prev_char == '\\' && alzr->ch != '\\' && alzr->ch != '\"')
+    {
+        if (alzr->ch != '\n')
+            clear_stdin('\n');
+        alzr->code = backslash_error;
+    }
+
+    if(alzr->prev_char == '\\' && alzr->ch == '\\')
+        return 0;
+
+    return alzr->ch;
+}
+
+int process_symbol(analyzator *alzr)
+{
+    alzr->code = add_char;
+    switch (alzr->ch)
+    {
+    case EOF:
+        alzr->code = quite;
+        break;
+    case '\"':
+        if (alzr->prev_char != '\\')
+        {   
+            alzr->code = ok;
+            alzr->quotes += 1;
+        }
+    break;
+    case '\\':
+        if(alzr->prev_char != '\\')
+            alzr->code = ok;
+        break;
+    case '\n':
+        alzr->code = quite;
+        insetr_word(alzr);
+        break;
+    case '\t':
+    case ' ':
+        if (!(alzr->quotes & 1))
+            alzr->code = ok;
+        insetr_word(alzr);
+        break;
+    default:
+        break;
+    }
+
+    alzr->prev_char = escape_sequence_analysis(alzr);
+
+    return ok;
+}
+
+void dialog(analyzator *alzr)
+{
+    putchar('>');
+    while (alzr->code == ok)
+    {
+        alzr->ch = getchar();
+        process_symbol(alzr);
+        if (alzr->code == add_char)
+        {
+            my_str_pushback_char(alzr->word, alzr->ch);
+            alzr->code = ok;
+        }
+    }
+
+    if(alzr->code == quite)
+        set_analyzator_code(alzr);
+
+    return;
+}
+
+int end_dialog(analyzator *alzr)
+{
+    if (alzr->words)
+    {
+        clear_list(alzr->words);
+        my_list_destroy(alzr->words);
+    }
+    if (alzr->word)
+        my_str_destroy(alzr->word);
+    
+        
+    alzr->word = NULL;
+    alzr->words = NULL;
     return 1;
 }
 
 int start_dialog()
 {
-    my_string *word = my_str_create(NULL);
-    my_list *words = my_list_create();
-    
-    int code = codes_handler(dialog(&word, words), words);
+    analyzator alzr;
+    init_analizator(&alzr);
+    int code;
+    if (alzr.code != ok)
+    {
+        code = dispatch_start_dialog_error(&alzr);
+    }
+    else
+    {
+        dialog(&alzr);
+        code = dialog_codes_handler(&alzr);
+    }
 
-    end_dialog(&word, &words);
+    end_dialog(&alzr);
     return code;
 }
 
@@ -179,5 +268,6 @@ int main()
 {    
     while(start_dialog()){}
 
+    putchar('\n');
     return 0;
 }
