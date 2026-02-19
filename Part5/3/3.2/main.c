@@ -100,6 +100,7 @@ int main(int argc, const char **argv)
         
     }
     
+    fclose(outfile);
     
 
     return 0;
