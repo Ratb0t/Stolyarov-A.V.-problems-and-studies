@@ -26,7 +26,6 @@ int xor_file(const char *filename, unsigned int key)
         }
         if(reminder)
         {
-            key = key >> 8 * (sizeof(int) - reminder);
             ((int *)buf)[i] ^= key;
         }
         lseek(iofile, -readed, SEEK_CUR);
