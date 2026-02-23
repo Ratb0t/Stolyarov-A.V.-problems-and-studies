@@ -50,16 +50,18 @@ int file_info(const char *filename)
 {
 
     struct stat buf;
-    lstat(filename, &buf);
-    print_info(&buf);
-    putchar('\n');
+    if(!lstat(filename, &buf))
+        print_info(&buf);
     if(S_ISLNK(buf.st_mode))
     {
-        stat(filename, &buf);
-        print_info(&buf);
+        putchar('\n');
+        putchar('\n');
+        if(!stat(filename, &buf))
+            print_info(&buf);
+        else
+            printf("dangling\n");
     }
-    putchar('\n');
-    putchar('\n');
+    
     return 1;
 }
 
