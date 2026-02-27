@@ -5,18 +5,17 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-typedef char *char_poiter_arr[];
+typedef char **string_array;
 
-int format_cmd_line(int argc, char *argv[], char_poiter_arr **cmd_line, int *cmd_line_size)
+int format_cmd_line(int argc, char *argv[], string_array *cmd_line, int *cmd_line_size)
 {
     int i;
-    for(i = 1; i < argc; ++i)
+    for(i = 0; i < argc - 1; ++i)
     {
-        (**cmd_line)[i - 1] = argv[i];
+        (*cmd_line)[i] = argv[i + 1];
     }
-
-    (**cmd_line)[i - 1] = NULL;
-    return i - 1;
+    (*cmd_line)[i] = NULL;
+    return i;
 }
 
 
@@ -27,7 +26,7 @@ int main(int argc, char *argv[])
     if(argc < 2)
     {
         printf("Args count error\n");
-        return 1;
+        //return 1;
     }
 
     int status;
@@ -40,7 +39,7 @@ int main(int argc, char *argv[])
     принимать указатель на указатель char_poiter_arr чтобы изменить внешний указатель
     cmd_line
     */
-    char_poiter_arr *cmd_line = malloc(cmd_line_size * sizeof(char *));
+    string_array cmd_line = malloc(cmd_line_size * sizeof(char *));
     format_cmd_line(argc, argv, &cmd_line, &cmd_line_size);
 
     pid = fork();
@@ -52,8 +51,8 @@ int main(int argc, char *argv[])
     if(pid == 0)
     {
   
-        execvp((*cmd_line)[0], *cmd_line);
-        perror((*cmd_line)[0]);
+        execvp(cmd_line[0], cmd_line);
+        perror(cmd_line[0]);
         exit(1);
     }
     else
