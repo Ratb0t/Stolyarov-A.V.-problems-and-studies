@@ -1,19 +1,35 @@
 #include "RBTree.h"
 #include <stdlib.h>
 
-node *RBTree_find_node(RBTree *tree, int key)
+typedef void (*accept_to_node)(node *n);
+
+node *RBTree_find_node(RBTree *tree, top_type data)
 {
     node *n = tree->root;
     while (n != tree->nil)
     {
-        if (n->key == key)
+        switch (tree->cmp(n->data, data))
+        {
+        case compare_equal:
             return n;
-        else if (n->key > key)
+            break;
+        case compare_great:
             n = n->left;
-        else
+            break;
+        case compare_less:
             n = n->right;
+        default:
+            break;
+        }
+        // if (n->key == key)
+        //     return n;
+        // else if (n->key > key)
+        //     n = n->left;
+        // else
+        //     n = n->right;
     }
-
+    if(n == tree->nil)
+        n = NULL;
     return n;
 }
 
@@ -50,32 +66,32 @@ node *maximum_node(RBTree *tree, node *n, int *length)
     return p;
 }
 
-int insert(RBTree *tree, int key)
+int RBTree_insert(RBTree *tree, top_type data)
 {
     node *cur = tree->root;
     node *cur_parent = tree->nil;
     while (cur != tree->nil)
     {
         cur_parent = cur;
-        if (cur->key == key)
+        if (tree->cmp(cur->data, data) == compare_equal)
         {
             tree->root->color = BLACK;
             return 0;
         }
 
         descending_fixup(tree, cur);
-        
-        if (cur->key > key)
+
+        if (tree->cmp(cur->data, data) == compare_great)
             cur = cur->left;
         else
             cur = cur->right;
         
     }
-    node *new_node = create_node(tree, key);
+    node *new_node = create_node(tree, data);
     new_node->parent = cur_parent;
     if (cur_parent == tree->nil)
         tree->root = new_node;
-    else if (cur_parent->key > key)
+    else if (tree->cmp(cur_parent->data, data) == compare_great)
         cur_parent->left = new_node;
     else
         cur_parent->right = new_node;
@@ -86,7 +102,7 @@ int insert(RBTree *tree, int key)
     return 1;
 }
 
-node *create_node(RBTree *tree, int key)
+node *create_node(RBTree *tree, top_type data)
 {
     node *new = malloc(sizeof(node));
     if (!new)
@@ -94,7 +110,7 @@ node *create_node(RBTree *tree, int key)
         return NULL;
     }
     new->color = RED;
-    new->key = key;
+    new->data = data;
     new->left = tree->nil;
     new->right = tree->nil;
     new->parent = tree->nil;
@@ -110,7 +126,7 @@ node *create_nil()
         return NULL;
     }
     new->color = BLACK;
-    new->key = 0;
+    new->data.as_void = NULL;
     new->left = new;
     new->right = new;
     new->parent = new;
@@ -132,7 +148,7 @@ RBTree *create_tree(compare_function function)
     }
     tree->nil = nil;
     tree->root = nil;
-    tree->function = function;
+    tree->cmp = function;
     return tree;
 }
 
@@ -270,344 +286,6 @@ void descending_fixup(RBTree *tree, node *n)
     return;
 }
 
-/*1)
-    Балансировка дерева и функция choose_witch_delete гарантирует,
-    если узел красный, то у него нет детей (невозможно вставить красный
-    узел к красному листу произойдет балансировка. Функция choose_witch_delete
-    возвращает КРАЙНИЙ лист (т.е. у листа гарантировано нет 1 потомка слева или справа).
-    Если возвращаемый лист красный и у него есть 1 потомок, то дерево не сбалансировано
-    т.к. возможно два нарушения.
-    1) Потомок является красным, у красного родителя не может быть красного потомка.
-    2) Т.к. у красного узала потомок обязан быть черным и он является единственным, тогда
-    будет нарушена черная высота.
-*/
-node *choose_witch_delete(RBTree *tree, node *n)
-{
-    int length_min, length_max;
-    node *min_right = minimal_node(tree, n->right, &length_min);
-    node *max_left = maximum_node(tree, n->left, &length_max);
-
-    if(length_min > length_max)
-        return min_right;
-    else
-        return max_left;
-
-}
-#define MY_DELETE_
-#ifdef MY_DELETE
-/*
-v - замена
-x - заменяемый
-Функция меняет местами узлы v и x, но поля key и data остаются
-*/
-void replace_node(RBTree *tree, node *v, node *x)
-{
-    node* tmp;
-
-    if(v->parent != tree->nil)
-    {
-        if (v->parent->left == v)
-            v->parent->left = x;
-        else
-            v->parent->right = x;
-    }
-
-    if (x->parent != tree->nil)
-    {
-        if (x->parent->left == x)
-            x->parent->left = v;
-        else
-            x->parent->right = v;
-    }
-
-    tmp = v->parent;
-
-    v->parent = x->parent;
-    x->parent = tmp;
-
-    if(v->left != tree->nil)
-        v->left->parent = x;
-    
-    if(v->right != tree->nil)
-        v->right->parent = x;
-
-    if(x->left != tree->nil)
-        x->left->parent = v;
-
-    if(x->right != tree->nil)
-        x->right->parent = v;
-    
-
-    tmp = v->left;
-
-    v->left = x->left;
-    x->left = tmp;
-
-    tmp = v->right;
-    
-    v->right = x->right;
-    x->right = tmp;
-
-    if(tree->root == x)
-        tree->root = v;
-    else if(tree->root == v)
-        tree->root = x;
-
-    swap_color(x, v);
-    return;
-    
-}
-
-/*2)
-    Отличие transplant_node от replace_node заключается в том,
-    что узел v встает на место узла x, а узел x отрезается от дерева и фактически
-    из дерева на него ничто не ссылается. Родительский который указывал на v, начинает
-    указывать на левый или правый узел, но т.к. функция фактически используется
-    только в удалении красного листа, то фактически родитель будет ссылаться на nil.
-    Почему у красного листа не может быть детей см коммент. 1)
-*/
-void transplant_node(RBTree *tree, node *v, node *x)
-{
-    if(v == tree->nil)
-        return;
-    if(v->parent != tree->nil)
-    {
-        if(v->parent->left == v)
-            v->parent->left = v->left;
-        else
-            v->parent->right = v->right;
-    }
-
-    v->left = x->left;
-    v->right = x->right;
-
-    if (v->left != tree->nil)
-        v->left->parent = v;
-    if (v->right != tree->nil)
-        v->right->parent = v;
-
-    v->parent = x->parent;
-    if (v->parent == tree->nil)
-        tree->root = v;
-    else if(v->parent->left == x)
-        v->parent->left = v;
-        else
-            v->parent->right = v;
-    
-    
-    swap_color(x,v);
-    return;
-}
-
-#ifdef REMOVE_WITH_REPLACE_NODE
-/*3)
-    Почему сделано два варианта.
-    Дело в том, чтобы не изменять поле данных, т.к. там может быть
-    инициализированная на стеке структура и копировать её может оказаться
-    накладно, особенно если портировать эту реализацию на C++ с ее классами,
-    где хранится не укзатель на объект, а сам объект, в таком случае будет
-    вызываться конструктор копирования, поэтому дешевле заместить удаляемый
-    дочерним, чем копировать данные. Вариант без замены подойдет если размер 
-    хранимых данных не большой, т.е. указатель или число и т.п. или для множества
-*/
-void remove_red_leaf(RBTree *tree, node *remove_node, node *replacement_node)
-{
-#ifndef USE_TRANSPLANT_FUNCTION
-    replace_node(tree, replacement_node, remove_node);
-    
-    //if(remove_node->parent != tree->nil)
-    //{
-        if(remove_node->parent->left == remove_node)
-            remove_node->parent->left = tree->nil;
-        else
-            remove_node->parent->right = tree->nil;
-    //}
-#else
-    transplant_node(tree, replacement_node, remove_node);
-#endif
-    free(remove_node);
-    return;
-}
-
-void remove_black_node(RBTree *tree, node *remove_node, node *replacement_node)
-{
-
-    if(replacement_node->left != tree->nil)
-        remove_red_leaf(tree, remove_node, replacement_node->left);
-    else
-        remove_red_leaf(tree, remove_node, replacement_node->right);
-
-    return;
-}
-
-void remove_fixup_case1(RBTree *tree, node *n)
-{
-    n->color = n->parent->color;
-    n->parent->color = BLACK;
-    if(get_granson_type(tree, n->right) == OUTSIDE_RIGHT)
-    {
-        n->right->color = BLACK;
-        left_rotate(tree, n->parent);
-    }
-    else
-    {
-        n->left->color = BLACK;
-        right_rotate(tree, n->parent);
-    }
-    return;
-}
-
-void remove_fixup_case2(RBTree *tree, node *n)
-{
-    if(get_granson_type(tree, n->right) == OUTSIDE_RIGHT)
-    {
-        swap_color(n, n->left);
-        right_rotate(tree, n);
-    }
-    else
-    {
-        swap_color(n, n->right);
-        left_rotate(tree, n);
-    }
-
-    return;
-}
-
-void remove_fixup_case3(RBTree *tree, node *n)
-{
-    if(n->parent == tree->root)
-    {
-        n->color = RED;
-        return;
-    }
-    if(n->parent->color == RED)
-    {
-        swap_color(n->parent, n);
-        return;
-    }
-}
-
-void remove_fixup(RBTree *tree, node *cur)
-{
-    if (cur->left == tree->nil && cur->left == tree->nil)
-    {
-        remove_fixup_case3(tree, cur);
-    }
-
-    if((cur->right->color == BLACK && get_granson_type(tree, cur->right) == OUTSIDE_RIGHT && cur->left->color == RED) ||
-        (cur->left->color == BLACK && get_granson_type(tree, cur->left) == OUTSIDE_LEFT && cur->right->color == RED))
-    {
-        remove_fixup_case2(tree, cur);
-        cur = cur->parent;
-    }
-
-    if ((cur->right->color == RED && get_granson_type(tree, cur->right) == OUTSIDE_RIGHT)||
-    (cur->left->color == RED && get_granson_type(tree, cur->right) == OUTSIDE_LEFT))
-    {
-        remove_fixup_case1(tree, cur);
-    }
-}   
-
-void remove_black_leaf(RBTree *tree, node *remove_node, node *replacement_node)
-{
-    if (replacement_node == tree->nil && tree->root == remove_node)
-    {
-        tree->root = tree->nil;
-        free(remove_node);
-        return;
-    }
-
-    node *brother;
-    if(replacement_node->parent->left == replacement_node)
-        brother = replacement_node->parent->right;
-    else
-        brother = replacement_node->parent->left;
-    
-    
-#ifndef USE_TRANSPLANT_FUNCTION
-    replace_node(tree, remove_node, replacement_node);
-#else
-    transplant_node(tree, replacement_node, remove_node);
-#endif
-
-    free(remove_node);
-
-    remove_fixup(tree, brother);
-
-    return;
-}
-
-void delete_node(RBTree *tree, node *x)
-{
-    
-    node *replacement_node = choose_witch_delete(tree, x);
-    if (replacement_node->color == RED && (x->left->left == tree->nil && x->right == tree->nil))
-    {
-        /*Будет удален x, а replacement_node станет на его место*/
-        remove_red_leaf(tree, x, replacement_node);
-        return;
-    }
-    /*Удаляем черный узел с одним потомком*/
-    if (replacement_node->left != tree->nil || replacement_node->right != tree->nil)
-    {
-        remove_black_node(tree, x, replacement_node);
-        return;
-    }
-
-    /*Удаляем черный лист*/
-    remove_black_leaf(tree, x, replacement_node);
-    return;
-}
-
-#else
-void remove_red_leaf(RBTree *tree, node *x, node *remove_node)
-{
-    x->key = remove_node->key;
-    x->data = remove_node->data;
-    if(remove_node->parent->left = remove_node)
-        remove_node->parent->left = tree->nil;
-    else
-        remove_node->parent->right = tree->nil;
-
-    free(remove_node);
-    return;
-}
-
-void remove_black_node(RBTree *tree, node *x, node *remove_node)
-{
-    
-    return;
-}
-
-void remove_black_leaf(RBTree *tree, node *x, node *remove_node)
-{
-
-    return;
-}
-
-void delete_node(RBTree *tree, node *x)
-{
-
-    node *remove_node = choose_witch_delete(tree, x);
-
-    if (remove_node->color == RED)
-    {
-
-        /*Будет удален remove_node, а x примет значение key и data*/
-        remove_red_leaf(tree, x, remove_node);
-    }
-    /*Удаляем черный узел с одним потомком*/
-    if (remove_node->left != tree->nil || remove_node->right != tree->nil)
-    {
-        remove_black_node(tree, x, remove_node);
-    }
-
-    /*Удаляем черный лист*/
-    remove_black_leaf(tree, x, remove_node);
-    return;
-}
-#endif
-#else
 void RBTransplant(RBTree *tree, node *x, node *v)
 {
     if (x->parent == tree->nil)
@@ -616,8 +294,8 @@ void RBTransplant(RBTree *tree, node *x, node *v)
         x->parent->left = v;
     else
         x->parent->right = v;
-    //if(v->parent != tree->nil)
-        v->parent = x->parent;
+
+    v->parent = x->parent;
     return;
 }
 
@@ -732,4 +410,94 @@ void RBTree_remove_node(RBTree *tree, node *x)
     free(x);
     return;
 }
-#endif /*MY DELETE*/
+
+node *RBTree_successor(RBTree *tree, node *n)
+{
+    if(n == tree->nil) return n;
+
+    if(n->right != tree->nil)
+        return minimal_node(tree, n->right, NULL);
+    node *p = n->parent;
+    while (p != tree->nil && n == p->right)
+    {
+        n = p;
+        p = p->parent;
+    }
+    return p;   
+}
+
+
+void RBTree_clear(RBTree *tree, accept_to_data data_function)
+{
+    if (tree->root == tree->nil)
+        return;
+
+    node *current = tree->root;
+    node *prev = tree->nil;
+
+    while (current != tree->nil)
+    {
+        // Если есть левый ребенок и мы не возвращаемся из него
+        if (current->left != tree->nil && prev != current->left && prev != current->right)
+        {
+            // Идем в левое поддерево
+            prev = current;
+            current = current->left;
+        }
+        // Иначе если есть правый ребенок и мы не возвращаемся из него
+        else if (current->right != tree->nil && prev != current->right)
+        {
+            // Идем в правое поддерево
+            prev = current;
+            current = current->right;
+        }
+        // Иначе это лист или узел с обработанными детьми - удаляем
+        else
+        {
+            // Сохраняем родителя
+            node *parent = current->parent;
+
+            // Освобождаем данные
+            if (data_function != NULL)
+            {
+                data_function(current->data);
+            }
+
+            // Отсоединяем от родителя
+            if (parent != tree->nil)
+            {
+                if (parent->left == current)
+                {
+                    parent->left = tree->nil;
+                }
+                else
+                {
+                    parent->right = tree->nil;
+                }
+            }
+
+            // Удаляем узел
+            free(current);
+
+            // Поднимаемся к родителю
+            prev = current;
+            current = parent;
+        }
+    }
+
+    tree->root = tree->nil;
+}
+
+
+void RBTree_walk(RBTree *tree, accept_to_data data_function)
+{
+    node *cur = minimal_node(tree, tree->root, NULL);
+    
+    while (cur != tree->nil)
+    {
+        if (data_function != NULL)
+            data_function(cur->data);
+
+        cur = RBTree_successor(tree, cur);
+    }
+}

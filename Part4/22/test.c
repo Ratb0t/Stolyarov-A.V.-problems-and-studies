@@ -41,14 +41,14 @@ int checkBlackHeight(RBTree *tree, node *current, int *valid)
         {
             *valid = 0;
             if(!silent)
-                printf("Ошибка: два красных узла подряд (узел %d и левый ребенок)\n", current->key);
+                printf("Ошибка: два красных узла подряд (узел %d и левый ребенок)\n", current->data.as_int);
             return 0;
         }
         if (current->right != tree->nil && current->right->color == RED)
         {
             *valid = 0;
             if (!silent)
-                printf("Ошибка: два красных узла подряд (узел %d и правый ребенок)\n", current->key);
+                printf("Ошибка: два красных узла подряд (узел %d и правый ребенок)\n", current->data.as_int);
             return 0;
         }
     }
@@ -59,7 +59,7 @@ int checkBlackHeight(RBTree *tree, node *current, int *valid)
         *valid = 0;
         if (!silent)
             printf("Ошибка: черная высота не сбалансирована в узле %d (левая: %d, правая: %d)\n",
-                   current->key, leftHeight, rightHeight);
+                   current->data.as_int, leftHeight, rightHeight);
         return 0;
     }
 

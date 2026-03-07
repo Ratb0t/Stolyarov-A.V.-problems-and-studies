@@ -1,0 +1,63 @@
+#!/bin/sh
+
+# Значения по умолчанию
+arg1=1
+count=10000
+silent=0
+
+# Обработка аргументов
+for i in $*; do
+    case $i in
+        -s)
+            silent=1
+            ;;
+        -c*)
+            # Более надежное извлечение числа
+            number=$(echo "$i" | sed 's/^-c//')
+            
+            # Проверка, что это число (только цифры)
+            if [ -n "$number" ] && [ "$number" -eq "$number" ] 2>/dev/null; then
+                count=$number
+            else
+                echo "Ошибка: параметр -c должен содержать число" >&2
+                exit 1
+            fi
+            ;;
+        *)
+            echo "Неизвестный параметр: $i" >&2
+            echo "Использование: $0 [-s] [-cN]" >&2
+            exit 1
+            ;;
+    esac
+done
+
+
+# Основной цикл
+if [ $silent -eq 0 ]; then
+    while [ $arg1 -ne $count ]; do
+        
+        echo $arg1 > arg.log
+        ./run.exe "$arg1" > black_hight.log
+        
+        if [ $? -eq 1 ]; then
+            break
+        fi
+        arg1=$((arg1 + 1))
+        
+    done
+else
+    while [ $arg1 -ne $count ]; do
+        
+        echo $arg1 > arg.log
+        ./run.exe "-s" "$arg1"
+        
+        if [ $? -eq 1 ]; then
+            break
+        fi
+        arg1=$((arg1 + 1))
+        
+    done
+fi
+
+
+echo $arg1 | tee arg.log

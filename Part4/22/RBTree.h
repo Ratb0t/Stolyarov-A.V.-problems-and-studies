@@ -3,7 +3,7 @@
 
 #define REMOVE_WITH_REPLACE_NODE
 #define USE_TRANSPLANT_FUNCTION
-
+#include "my_types.h"
 typedef enum Color
 {
     BLACK,
@@ -23,11 +23,13 @@ enum compare_function_value{
     compare_great
 };
 
-typedef int (*compare_function)(void *a, void *b);
+typedef int (*compare_function)(top_type a, top_type b);
+typedef int (*accept_to_data)(top_type data);
+
 
 typedef struct node
 {
-    int key;
+    top_type data;
     Color color;
     struct node *parent;
     struct node *left;
@@ -38,16 +40,18 @@ typedef struct RBTree
 {
     node *root;
     node *nil;
-    compare_function function;
+    compare_function cmp;
 } RBTree;
 
-node *create_node(RBTree *tree, int key);
+node *create_node(RBTree *tree, top_type data);
 node *create_nil();
 RBTree *create_tree(compare_function function);
 
-node *RBTree_find_node(RBTree *tree, int key);
+node *RBTree_find_node(RBTree *tree, top_type data);
 
+void RBTree_clear(RBTree *tree, accept_to_data data_function);
 void destroy_tree(RBTree *tree);
+
 
 void left_rotate(RBTree *tree, node *rt);
 void right_rotate(RBTree *tree, node *rt);
@@ -58,13 +62,12 @@ int RB_fixup(RBTree *tree, node *n);
 void insert_fixup(RBTree *tree, node *n);
 void descending_fixup(RBTree *tree, node *n);
 
-int insert(RBTree *tree, int key);
+int RBTree_insert(RBTree *tree, top_type data);
 
 void RBTree_remove_node(RBTree *tree, node *x);
-
+void RBTree_walk(RBTree *tree, accept_to_data data_function);
 /*tests*/
 int checkBlackHeight(RBTree *tree, node *current, int *valid);
 int isRBTreeBalanced(RBTree *tree);
-;
 
 #endif /*!RBTREE_REINCLUDE_SENTRY*/

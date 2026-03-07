@@ -1,0 +1,29 @@
+#!/bin/sh
+
+# Значения по умолчанию
+arg1=1
+count=10000
+silent=0
+
+# Обработка аргументов
+for i in $*; do
+    number=$i
+    # Проверка, что это число (только цифры)
+    if [ -n "$number" ] && [ "$number" -eq "$number" ] 2>/dev/null; then
+        arg1=$number
+        echo "$arg1"
+        ./run.exe "$arg1" > /dev/null
+    if [ $? -eq 1 ]; then
+        echo ./run.exe "$arg1"
+        break
+    fi
+    else
+        echo "Ошибка: параметр должен содержать число" >&2
+        exit 1
+    fi
+    
+        
+done
+
+
+echo $arg1 | tee arg.log
