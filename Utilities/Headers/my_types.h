@@ -16,6 +16,13 @@ typedef union universal_data_type
     void *as_void;
 } top_type;
 
+enum compare_function_value
+{
+    compare_less = -1,
+    compare_equal,
+    compare_great
+};
+
 typedef unsigned char       BYTE;
 typedef unsigned short      WORD;
 typedef unsigned long       DWORD;

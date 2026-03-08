@@ -17,11 +17,6 @@ enum Grandson_types
     OUTSIDE_RIGHT,
     INSIDE_RIGHT
 };
-enum compare_function_value{
-    compare_less = -1,
-    compare_equal,
-    compare_great
-};
 
 typedef int (*compare_function)(top_type a, top_type b);
 typedef int (*accept_to_data)(top_type data);
