@@ -27,8 +27,14 @@ int my_list_push_front(my_list *list, top_type data);
 int my_list_push_back(my_list *list, top_type data);
 /*******************************************************************************/
 top_type my_list_delete_item(my_list *lst, unsigned int pos);
+
+top_type my_list_pop_front(my_list *lst);
+
+top_type my_list_pop_back(my_list *lst);
 /*******************************************************************************/
 unsigned int my_list_get_len(const my_list *lst);
+
+int my_list_is_empty(my_list *lst);
 
 my_list_iterator my_list_get_item(const my_list *lst, unsigned int pos);
 

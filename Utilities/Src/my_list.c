@@ -178,3 +178,18 @@ inline my_list_tail my_list_get_tail(const my_list *lst)
 {
     return (my_list_tail) &(lst->tail);
 }
+
+inline top_type my_list_pop_front(my_list *lst)
+{
+    return my_list_delete_item(lst, 0);
+}
+
+inline top_type my_list_pop_back(my_list *lst)
+{
+    return my_list_delete_item(lst, lst->length);
+}
+
+inline int my_list_is_empty(my_list *lst)
+{
+    return !!lst->length;
+}
