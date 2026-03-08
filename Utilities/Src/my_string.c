@@ -110,7 +110,7 @@ int my_str_set_string(struct my_string *str, const char *buf)
     }
 
     my_memcpy(str->buf, buf, buf_size);
-
+    str->length = buf_size - 1; /* -1 убираем из учета '\0' */
     return 1;
 }
 
