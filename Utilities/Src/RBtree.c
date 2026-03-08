@@ -500,3 +500,8 @@ void RBTree_destroy(RBTree *tree, accept_to_data data_function)
     free(tree);
     return;
 }
+
+int RBTree_is_empty(RBTree *tree)
+{
+    return tree->root == tree->nil;
+}

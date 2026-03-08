@@ -66,6 +66,8 @@ int RBTree_insert(RBTree *tree, top_type data);
 
 void RBTree_remove_node(RBTree *tree, node *x);
 void RBTree_walk(RBTree *tree, accept_to_data data_function);
+
+int RBTree_is_empty(RBTree *tree);
 /*tests*/
 int checkBlackHeight(RBTree *tree, node *current, int *valid);
 int isRBTreeBalanced(RBTree *tree);
