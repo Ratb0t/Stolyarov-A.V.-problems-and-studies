@@ -36,11 +36,10 @@ typedef struct process_handle
     int need_init;
 } process_handle;
 
-typedef struct interpeter
+typedef struct context
 {
     analyzator *alzr;
     process_handle *proc_hanler;
-    int code;
-} interpeter;
+} context;
 
 #endif /* !REINCLUDE_MY_TYPES_SENTRY */
