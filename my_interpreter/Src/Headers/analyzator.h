@@ -8,10 +8,12 @@ analyzator *create_analyzator();
 
 void destroy_analyzator(analyzator *alzr);
 
-int my_strcmp(const char *str1, const char *str2);
-
 void init_analizator(analyzator *alzr);
 
+/********************************************************************/
+int my_strcmp(const char *str1, const char *str2);
+
+/********************************************************************/
 void set_analyzator_code(analyzator *alzr);
 
 void clear_stdin(int ch);

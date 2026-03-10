@@ -13,11 +13,13 @@
 
 void out_input(my_list *lst);
 
+/********************************************************************/
 int start_dialog();
 
 void dialog(analyzator *alzr);
 
 int end_dialog(analyzator *alzr);
+/********************************************************************/
 
 int dialog_codes_process(analyzator *alzr);
 

@@ -15,11 +15,14 @@ void destroy_process_handle(process_handle *ph);
 
 void init_process_handle(process_handle *ph);
 
+/***************************************************************/
 int format_cmd_line(analyzator *alzr, char *cmd_line[]);
 
+/***************************************************************/
 int process_cd_command(analyzator *alzr, char *path);
 
 int start_external_prog(analyzator *alzr);
+/***************************************************************/
 
 int cleaning_background_processes(analyzator *alzr);
 
