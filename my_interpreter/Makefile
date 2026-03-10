@@ -6,16 +6,18 @@ EXECUTABLE := main.exe
 UTILS_PATH := ../Utilities
 UTILS_SRC_PATH := $(UTILS_PATH)/Src
 UTILS_HEADERS_DIR := $(UTILS_PATH)/Headers
+SRC_DIR := Src
+HEADERS_DIR := $(SRC_DIR)/Headers
 
-INCLUDE_DIRS = -I$(UTILS_HEADERS_DIR)
+INCLUDE_DIRS = -I$(UTILS_HEADERS_DIR) -I$(HEADERS_DIR)
 
 CC_FLAGS = -g -Wall $(INCLUDE_DIRS)
 CC := gcc
 
-SRC_C := main.c 
+SRC_C := $(wildcard $(SRC_DIR)/*.c)
 SRC_UTILS = $(UTILS_SRC_PATH)/my_list.c $(UTILS_SRC_PATH)/my_string.c $(UTILS_SRC_PATH)/utilities_functions.c
 OBJECTS = $(patsubst $(UTILS_SRC_PATH)/%.c, $(OBJ_DIR)/%.o, $(SRC_UTILS))\
-$(patsubst %.c, $(OBJ_DIR)/%.o, $(SRC_C))
+$(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC_C))
 
 
 run.exe : $(BIN_DIR)/$(EXECUTABLE) 
@@ -24,7 +26,7 @@ run.exe : $(BIN_DIR)/$(EXECUTABLE)
 $(BIN_DIR)/$(EXECUTABLE) : $(OBJECTS) | $(OBJ_DIR) $(BIN_DIR)
 	gcc $(OBJECTS) -o $@
 
-$(OBJ_DIR)/%.o : %.c | $(OBJ_DIR) 
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR) 
 	$(CC) -c $(CC_FLAGS) $< -o $@
 	
 $(OBJ_DIR)/%.o : $(UTILS_SRC_PATH)/%.c | $(OBJ_DIR) 
@@ -48,9 +50,11 @@ get:
 	@echo OBJ_DIR == $(OBJ_DIR)
 	@echo
 	@echo $(OBJ_DIR)/%.o : $(SRC_UTILS)/%.c
+	@echo
+	@echo "SRC_C = $(SRC_C)"
 
-print:
-	@echo "OBJ_DIR = $(OBJ_DIR)"
-	@echo "SRC_UTILS = $(SRC_UTILS)"
-	@echo "Ищем файл: $(SRC_UTILS)/my_list.c"
-	@ls -la $(SRC_UTILS)/my_list.c || echo "Файл НЕ НАЙДЕН!"
+
+clear :
+	@rm -rf Build
+
+rebuild : clear run.exe
