@@ -8,21 +8,20 @@
 #include "my_list.h"
 #include "my_types.h"
 
-#include "analyzator.h"
-#include "process_handler.h"
+#include "context.h"
 
 void out_input(my_list *lst);
 
 /********************************************************************/
 int start_dialog();
 
-void dialog(analyzator *alzr);
+void dialog(context *cnt);
 
-int end_dialog(analyzator *alzr);
+int end_dialog(context *cnt);
 /********************************************************************/
 
-int dialog_codes_process(analyzator *alzr);
+int dialog_codes_process(context *cnt);
 
-int dispatch_dialog_error(analyzator *alzr);
+int dispatch_dialog_error(context *cnt);
 
 #endif /* !REINCLUDE_GUARD_MAIN_SENTRY */

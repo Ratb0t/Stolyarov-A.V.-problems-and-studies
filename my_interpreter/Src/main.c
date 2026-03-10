@@ -23,33 +23,35 @@ void clear_list(my_list *lst)
 
 int main()
 {    
-    while(start_dialog()){}
-
+    context *shell = create_and_init_context();
+    if(shell == NULL)
+        return 1;
+    while(start_dialog(shell)){}
+    destroy_context(shell);
     putchar('\n');
     return 0;
 }
 
-int start_dialog()
+int start_dialog(context *shell)
 {
-    analyzator alzr;
-    init_analizator(&alzr);
+    context_reset_analizator(shell);
     int code;
-    if (alzr.code != ok)
+    if (shell->code != ok)
     {
-        code = dispatch_dialog_error(&alzr);
+        code = dispatch_dialog_error(shell);
     }
     else
     {
-        dialog(&alzr);
-        code = dialog_codes_process(&alzr);
+        dialog(shell);
+        code = dialog_codes_process(shell);
     }
 
-    end_dialog(&alzr);
+    end_dialog(shell);
     return code;
 }
 
 
-int dispatch_dialog_error(analyzator *alzr)
+int dispatch_dialog_error(context *alzr)
 {
     dialog_codes_process(alzr);
     printf("Try again? y/n: ");
@@ -61,58 +63,51 @@ int dispatch_dialog_error(analyzator *alzr)
     return quite;
 }
 
-void dialog(analyzator *alzr)
+void dialog(context *cnt)
 {
     wait(NULL);// wait_startetd_process(alzr);
     putchar('>');
-    while (alzr->code == ok)
+    while (cnt->alzr->code == ok)
     {
-        alzr->ch = getchar();
-        process_symbol(alzr);
-        if (alzr->code == add_char)
+        cnt->alzr->ch = getchar();
+        process_symbol(cnt->alzr);
+        if (cnt->alzr->code == add_char)
         {
-            my_str_pushback_char(alzr->word, alzr->ch);
-            alzr->code = ok;
+            my_str_pushback_char(cnt->alzr->word, cnt->alzr->ch);
+            cnt->alzr->code = ok;
         }
     }
 
-    if (alzr->code == end_input_line)
-        set_analyzator_code(alzr);
+    cnt->code = get_analyzator_code(cnt->alzr);
 
     return;
 }
 
 
-int dialog_codes_process(analyzator *alzr)
+int dialog_codes_process(context *cnt)
 {
-    switch (alzr->code)
+    switch (cnt->code)
     {
     case ok:
         return 1;
     case quite:
-        wait_startetd_process_before_quite(alzr);
+        wait_startetd_process_before_quite(cnt);
         return 0;
     case exect_external:
-        if(!start_external_prog(alzr))
-        return dialog_codes_process(alzr);
+        if (!start_external_prog(cnt))
+            return dialog_codes_process(cnt);
         break;
     case fork_error:
-        printf("Failed to start the program. Fork");
+        printf("Failed to start the program. Fork\n");
         break;
     case home_env_error:
-        printf("The 'HOME' environment variable does not exist or does not contain the path to the home directory.");
+        printf("The 'HOME' environment variable does not exist or does not contain the path to the home directory.\n");
         break;
     case print_input:
-        out_input(alzr->words);
-        break;
-    case quotes_error:
-        printf("Error: unmatched quotes");
+        out_input(cnt->alzr->words);
         break;
     case alloc_error:
-        printf("Error: can't alloc memory");
-        break;
-    case backslash_error:
-        printf("Error: unknown escape sequence");
+        printf("Error: can't alloc memory\n");
         break;
     default:
         break;
@@ -134,17 +129,17 @@ void out_input(my_list *lst)
     return;
 }
 
-int end_dialog(analyzator *alzr)
+int end_dialog(context *cnt)
 {
-    if (alzr->words)
+    if (cnt->alzr->words)
     {
-        clear_list(alzr->words);
-        my_list_destroy(alzr->words);
+        clear_list(cnt->alzr->words);
+        my_list_destroy(cnt->alzr->words);
     }
-    if (alzr->word)
-        my_str_destroy(alzr->word);
+    if (cnt->alzr->word)
+        my_str_destroy(cnt->alzr->word);
 
-    alzr->word = NULL;
-    alzr->words = NULL;
+    cnt->alzr->word = NULL;
+    cnt->alzr->words = NULL;
     return 1;
 }
