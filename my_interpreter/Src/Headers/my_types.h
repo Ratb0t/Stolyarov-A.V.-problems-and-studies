@@ -14,8 +14,9 @@ enum codes
     fork_error,
     home_env_error,
     quotes_error,
-    alloc_error,
     backslash_error,
+    analyzartor_error_processed,
+    alloc_error,
     start_dialog_error
 };
 
@@ -40,6 +41,7 @@ typedef struct context
 {
     analyzator *alzr;
     process_handle *proc_hanler;
+    int code;
 } context;
 
 #endif /* !REINCLUDE_MY_TYPES_SENTRY */
