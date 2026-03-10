@@ -1,22 +1,42 @@
 #include "analyzator.h"
 
-int analyzator_code_error_handler(analyzator *alzr)
+int get_analyzator_code(analyzator *alzr)
+{
+    if (alzr->ch == EOF)
+        return quite;
+
+    if (my_list_get_len(alzr->words))
+        return exect_external; // print_input;
+
+    if (alzr->quotes)
+        alzr->code = quotes_error;
+
+    analyzator_code_error_handler(alzr);
+    return alzr->code;
+}
+
+void analyzator_code_error_handler(analyzator *alzr)
 {
     switch (alzr->code)
     {
+    case ok:
+    case end_input_line:
+        return;
+        break;
     case quotes_error:
-        printf("Analyzator error: unmatched quotes");
+        printf("Analyzator error: unmatched quotes\n");
         break;
     case alloc_error:
-        printf("Analyzator error: can't alloc memory");
+        printf("Analyzator error: can't alloc memory\n");
         break;
     case backslash_error:
-        printf("Analyzator error: unknown escape sequence");
+        printf("Analyzator error: unknown escape sequence\n");
         break;
     default:
         break;
     }
-    return 1;
+    alzr->code = analyzartor_error_processed;
+    return;
 }
 
 analyzator *create_analyzator()
@@ -108,18 +128,6 @@ int process_symbol(analyzator *alzr)
     return ok;
 }
 
-void set_analyzator_code(analyzator *alzr)
-{
-    if (alzr->ch == EOF)
-        alzr->code = quite;
-    if (my_list_get_len(alzr->words))
-        alzr->code = exect_external; // print_input;
-    if (alzr->quotes)
-        alzr->code = quotes_error;
-
-    return;
-}
-
 void init_analizator(analyzator *alzr)
 {
     alzr->ch = 0;
@@ -134,7 +142,7 @@ void init_analizator(analyzator *alzr)
         my_str_destroy(alzr->word);
         alzr->word = NULL;
     }
-
+    analyzator_code_error_handler(alzr);
     return;
 }
 
@@ -163,9 +171,4 @@ void clear_stdin(int ch)
     return;
 }
 
-void set_shell_code(interpeter *shell)
-{
-    set_analyzator_code(shell->alzr);
-    shell->code = shell->alzr->code;
-}
 

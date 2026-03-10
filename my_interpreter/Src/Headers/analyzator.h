@@ -10,11 +10,12 @@ void destroy_analyzator(analyzator *alzr);
 
 void init_analizator(analyzator *alzr);
 
+void analyzator_code_error_handler(analyzator *alzr);
 /********************************************************************/
 int my_strcmp(const char *str1, const char *str2);
 
 /********************************************************************/
-void set_analyzator_code(analyzator *alzr);
+int get_analyzator_code(analyzator *alzr);
 
 void clear_stdin(int ch);
 
