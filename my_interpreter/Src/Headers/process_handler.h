@@ -19,15 +19,15 @@ void init_process_handle(process_handle *ph);
 int format_cmd_line(analyzator *alzr, char *cmd_line[]);
 
 /***************************************************************/
-int process_cd_command(analyzator *alzr, char *path);
+int process_cd_command(context *cnt, char *path);
 
-int start_external_prog(analyzator *alzr);
+int start_external_prog(context *cnt);
 /***************************************************************/
 
-int cleaning_background_processes(analyzator *alzr);
+int cleaning_background_processes(context *cnt);
 
-int wait_startetd_process_before_quite(analyzator *alzr);
+int wait_startetd_process_before_quite(context *cnt);
 
-int wait_foreground_process(analyzator *alzr);
+int wait_foreground_process(context *cnt);
 
 #endif /* !REINCLUDE_GUARD_PROCESS_HANDLER_SENTRY */

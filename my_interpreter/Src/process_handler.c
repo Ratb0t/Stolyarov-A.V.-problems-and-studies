@@ -1,7 +1,7 @@
 #include "analyzator.h"
 #include "process_handler.h"
 
-extern int end_dialog(analyzator *alzr);
+extern int end_dialog(context *cnt);
 
 process_handle *create_process_handle()
 {
@@ -43,7 +43,7 @@ int format_cmd_line(analyzator *alzr, char *cmd_line[])
     return 1;
 }
 
-int process_cd_command(analyzator *alzr, char *path)
+int process_cd_command(context *cnt, char *path)
 {
     if (path && path[0] == '.')
     {
@@ -61,7 +61,7 @@ int process_cd_command(analyzator *alzr, char *path)
             path += 1;
         if (my_str_get_data(home_dir) == NULL)
         {
-            alzr->code = home_env_error;
+            cnt->code = home_env_error;
             my_str_destroy(home_dir);
             return 0;
         }
@@ -78,20 +78,20 @@ int process_cd_command(analyzator *alzr, char *path)
     return 1;
 }
 
-int start_external_prog(analyzator *alzr)
+int start_external_prog(context *cnt)
 {
-    char **cmd_line = malloc(sizeof(char *) * (my_list_get_len(alzr->words) + 1));
+    char **cmd_line = malloc(sizeof(char *) * (my_list_get_len(cnt->alzr->words) + 1));
     if (!cmd_line)
     {
-        alzr->code = alloc_error;
+        cnt->code = alloc_error;
         return 0;
     }
 
-    format_cmd_line(alzr, cmd_line);
+    format_cmd_line(cnt->alzr, cmd_line);
 
     if (my_strcmp(cmd_line[0], "cd") == compare_equal)
     {
-        int code = process_cd_command(alzr, cmd_line[1]);
+        int code = process_cd_command(cnt, cmd_line[1]);
         free(cmd_line);
         return code;
     }
@@ -102,13 +102,13 @@ int start_external_prog(analyzator *alzr)
         {
             execvp(cmd_line[0], cmd_line);
             perror("Command error");
-            end_dialog(alzr);
+            end_dialog(cnt);
             free(cmd_line);
             exit(1);
         }
         if (pid < 0)
         {
-            alzr->code = fork_error;
+            cnt->code = fork_error;
             //alzr->num_running_processes -= 1;
         }
         //alzr->num_running_processes += 1;
@@ -119,7 +119,7 @@ int start_external_prog(analyzator *alzr)
 }
 
 /*На данный момент времени не нужна*/
-int wait_startetd_process_before_quite(analyzator *alzr)
+int wait_startetd_process_before_quite(context *cnt)
 {
     // while (alzr->num_running_processes && wait4(-1, NULL, WNOHANG, NULL) > 0) // while (wait(NULL))
     // {
@@ -129,7 +129,7 @@ int wait_startetd_process_before_quite(analyzator *alzr)
 }
 
 /*На данный момент времени не нужна*/
-int cleaning_background_processes(analyzator *alzr)
+int cleaning_background_processes(context *cnt)
 {
     // while (wait4(-1, NULL, WNOHANG, NULL) > 0)
     // {
@@ -138,7 +138,7 @@ int cleaning_background_processes(analyzator *alzr)
     return 1;
 }
 
-int wait_foreground_process(analyzator *alzr)
+int wait_foreground_process(context *cnt)
 {
     //int p;
 
