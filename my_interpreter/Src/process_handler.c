@@ -1,5 +1,8 @@
 #include "analyzator.h"
 #include "process_handler.h"
+
+extern int end_dialog(analyzator *alzr);
+
 process_handle *create_process_handle()
 {
     process_handle *ph = malloc(sizeof(process_handle));
@@ -106,9 +109,9 @@ int start_external_prog(analyzator *alzr)
         if (pid < 0)
         {
             alzr->code = fork_error;
-            alzr->num_running_processes -= 1;
+            //alzr->num_running_processes -= 1;
         }
-        alzr->num_running_processes += 1;
+        //alzr->num_running_processes += 1;
     }
 
     free(cmd_line);
@@ -118,24 +121,26 @@ int start_external_prog(analyzator *alzr)
 /*На данный момент времени не нужна*/
 int wait_startetd_process_before_quite(analyzator *alzr)
 {
-    while (alzr->num_running_processes && wait4(-1, NULL, WNOHANG, NULL) > 0) // while (wait(NULL))
-    {
-        alzr->num_running_processes -= 1;
-    }
+    // while (alzr->num_running_processes && wait4(-1, NULL, WNOHANG, NULL) > 0) // while (wait(NULL))
+    // {
+    //     alzr->num_running_processes -= 1;
+    // }
     return 1;
 }
 
 /*На данный момент времени не нужна*/
 int cleaning_background_processes(analyzator *alzr)
 {
-    while (wait4(-1, NULL, WNOHANG, NULL) > 0)
-    {
-        alzr->num_running_processes -= 1;
-    }
+    // while (wait4(-1, NULL, WNOHANG, NULL) > 0)
+    // {
+    //     alzr->num_running_processes -= 1;
+    // }
     return 1;
 }
 
 int wait_foreground_process(analyzator *alzr)
 {
-    int p;
+    //int p;
+
+    return 0;
 }

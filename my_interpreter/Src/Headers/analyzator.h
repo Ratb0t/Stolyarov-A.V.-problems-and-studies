@@ -16,6 +16,8 @@ void set_analyzator_code(analyzator *alzr);
 
 void clear_stdin(int ch);
 
+int process_symbol(analyzator *alzr);
+
 /*******************************************************/
 
 #endif /* !REINCLUDE_GUARD_ANALYZATOR_SENTRY */
