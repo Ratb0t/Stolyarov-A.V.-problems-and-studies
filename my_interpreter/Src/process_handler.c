@@ -2,7 +2,7 @@
 #include "process_handler.h"
 
 extern int end_dialog(context *cnt);
-
+extern void destroy_context(context *cnt);
 process_handle *create_process_handle()
 {
     process_handle *ph = malloc(sizeof(process_handle));
@@ -45,6 +45,8 @@ int format_cmd_line(analyzator *alzr, char *cmd_line[])
 
 int process_cd_command(context *cnt, char *path)
 {
+    /*Cd не является отдельным процессом*/
+    cnt->code.minore_code.codes.fg_process = 0;
     if (path && path[0] == '.')
     {
         if (path[1] == '\0')
@@ -61,7 +63,7 @@ int process_cd_command(context *cnt, char *path)
             path += 1;
         if (my_str_get_data(home_dir) == NULL)
         {
-            cnt->code = home_env_error;
+            cnt->code.major_code = home_env_error;
             my_str_destroy(home_dir);
             return 0;
         }
@@ -83,7 +85,7 @@ int start_external_prog(context *cnt)
     char **cmd_line = malloc(sizeof(char *) * (my_list_get_len(cnt->alzr->words) + 1));
     if (!cmd_line)
     {
-        cnt->code = alloc_error;
+        cnt->code.major_code = alloc_error;
         return 0;
     }
 
@@ -102,16 +104,19 @@ int start_external_prog(context *cnt)
         {
             execvp(cmd_line[0], cmd_line);
             perror("Command error");
-            end_dialog(cnt);
             free(cmd_line);
+            destroy_context(cnt);
+            putchar('>');
             exit(1);
         }
         if (pid < 0)
         {
-            cnt->code = fork_error;
-            //alzr->num_running_processes -= 1;
+            cnt->code.major_code = fork_error;
+            cnt->proc_hanler->num_running_processes -= 1;
         }
-        //alzr->num_running_processes += 1;
+        cnt->proc_hanler->num_running_processes += 1;
+        if(cnt->code.minore_code.codes.fg_process)
+            cnt->proc_hanler->fg_pid = pid;
     }
 
     free(cmd_line);
@@ -121,26 +126,37 @@ int start_external_prog(context *cnt)
 /*На данный момент времени не нужна*/
 int wait_startetd_process_before_quite(context *cnt)
 {
-    // while (alzr->num_running_processes && wait4(-1, NULL, WNOHANG, NULL) > 0) // while (wait(NULL))
-    // {
-    //     alzr->num_running_processes -= 1;
-    // }
+    return 0;
+    printf("Wait child process, before \n");
+    while (cnt->proc_hanler->num_running_processes) // while (wait(NULL))
+    {
+        if (wait4(-1, NULL, WNOHANG, NULL) > 0)
+            cnt->proc_hanler->num_running_processes -= 1;
+    }
     return 1;
 }
 
-/*На данный момент времени не нужна*/
+
 int cleaning_background_processes(context *cnt)
 {
-    // while (wait4(-1, NULL, WNOHANG, NULL) > 0)
-    // {
-    //     alzr->num_running_processes -= 1;
-    // }
+    while (wait4(-1, NULL, WNOHANG, NULL) > 0)
+    {
+        cnt->proc_hanler->num_running_processes -= 1;
+    }
     return 1;
 }
 
 int wait_foreground_process(context *cnt)
 {
-    //int p;
-
-    return 0;
+    if (cnt->code.minore_code.codes.fg_process)
+    {
+        int p;
+        while((p = wait(NULL)) > 0 && p != cnt->proc_hanler->fg_pid)
+        {
+            cnt->proc_hanler->num_running_processes -= 1;
+        }
+        cnt->proc_hanler->num_running_processes -= 1;
+    }
+    
+    return 1;
 }
