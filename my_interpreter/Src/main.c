@@ -11,32 +11,36 @@ my_string - фактически реализация вектора, котор
 
 int main()
 {
-    context *shell = create_and_init_context();
-    if(shell == NULL)
+    /* Для поиска утечек
+    int *s = malloc(sizeof(int));
+    free(s);
+    */
+    context *cnt = create_and_init_context();
+    if(cnt == NULL)
         return 1;
-    while(start_dialog(shell)){}
-    destroy_context(shell);
+    while(start_dialog(cnt)){}
+    destroy_context(cnt);
     putchar('\n');
     return 0;
 }
 
-int start_dialog(context *shell)
+int start_dialog(context *cnt)
 {
-    wait_foreground_process(shell);
-    cleaning_background_processes(shell);
-    context_reset_analizator(shell);
+    wait_foreground_process(cnt);
+    cleaning_background_processes(cnt);
+    context_reset_analizator(cnt);
     int code;
-    if (shell->code.major_code != ok)
+    if (cnt->code.major_code != ok)
     {
-        code = dispatch_dialog_error(shell);
+        code = dispatch_dialog_error(cnt);
     }
     else
     {
-        dialog(shell);
-        code = dialog_codes_process(shell);
+        dialog(cnt);
+        code = dialog_codes_process(cnt);
     }
 
-    end_dialog(shell);
+    end_dialog(cnt);
     return code;
 }
 
