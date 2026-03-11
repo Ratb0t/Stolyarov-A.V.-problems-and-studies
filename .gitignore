@@ -13,5 +13,4 @@ Utilities/Makefile
 hello.c
 hello
 my_interpreter/test_skript
-my_interpreter/gdb_config.gdb
-my_interpreter/gdb_config_simple.gdb
+
