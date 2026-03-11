@@ -3,19 +3,26 @@
 
 #include <stdio.h>
 #include "my_types.h"
+#include "my_list.h"
 
+void analyzator_code_error_handler(analyzator *alzr);
+
+/********************************************************************/
 analyzator *create_analyzator();
+
+int clear_analyzator(analyzator *alzr);
 
 void destroy_analyzator(analyzator *alzr);
 
 void init_analizator(analyzator *alzr);
 
-void analyzator_code_error_handler(analyzator *alzr);
+void reset_analizator(analyzator *alzr);
+
 /********************************************************************/
 int my_strcmp(const char *str1, const char *str2);
 
 /********************************************************************/
-int get_analyzator_code(analyzator *alzr);
+void set_control_code(context *cnt);
 
 void clear_stdin(int ch);
 
