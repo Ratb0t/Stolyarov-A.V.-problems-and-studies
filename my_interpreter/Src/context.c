@@ -2,32 +2,32 @@
 
 context *create_and_init_context()
 {
-    context *shell = malloc(sizeof(context));
-    if (shell == NULL)
+    context *cnt = malloc(sizeof(context));
+    if (cnt == NULL)
     {
         printf("Context create error: Failed to allocate interpreter\n");
         return NULL;
     }
-    shell->alzr = create_analyzator();
-    if (shell->alzr == NULL)
+    cnt->alzr = create_analyzator();
+    if (cnt->alzr == NULL)
     {
-        free(shell);
+        free(cnt);
         return NULL;
     }
 
-    shell->proc_hanler = create_process_handle();
-    if (shell->proc_hanler == NULL)
+    cnt->proc_hanler = create_process_handle();
+    if (cnt->proc_hanler == NULL)
     {
-        destroy_analyzator(shell->alzr);
-        free(shell);
+        destroy_analyzator(cnt->alzr);
+        free(cnt);
         return NULL;
     }
         
-    init_analizator(shell->alzr);
-    init_process_handle(shell->proc_hanler);
-    shell->code.major_code = ok;
-    shell->code.minore_code.raw = 0;
-    return shell;
+    init_analizator(cnt->alzr);
+    init_process_handle(cnt->proc_hanler);
+    cnt->code.major_code = ok;
+    cnt->code.minore_code.raw = 0;
+    return cnt;
 }
 void destroy_context(context *cnt)
 {
