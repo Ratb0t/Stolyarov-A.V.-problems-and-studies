@@ -20,6 +20,8 @@ void dialog(context *cnt);
 int end_dialog(context *cnt);
 /********************************************************************/
 
+int minor_code_correction_after_error(context *cnt);
+
 int dialog_codes_process(context *cnt);
 
 int dispatch_dialog_error(context *cnt);

@@ -9,20 +9,8 @@ my_string - фактически реализация вектора, котор
 содержит указатель на динамически выделенный буфер
 */
 
-void clear_list(my_list *lst)
-{
-    my_list_iterator it;
-    while((it = my_list_get_first(lst)))
-    {
-        my_str_destroy(it->data_holder.as_void);
-        my_list_delete_item(lst, 0);
-    }
-
-    return;
-}
-
 int main()
-{    
+{
     context *shell = create_and_init_context();
     if(shell == NULL)
         return 1;
@@ -34,9 +22,11 @@ int main()
 
 int start_dialog(context *shell)
 {
+    wait_foreground_process(shell);
+    cleaning_background_processes(shell);
     context_reset_analizator(shell);
     int code;
-    if (shell->code != ok)
+    if (shell->code.major_code != ok)
     {
         code = dispatch_dialog_error(shell);
     }
@@ -65,20 +55,19 @@ int dispatch_dialog_error(context *alzr)
 
 void dialog(context *cnt)
 {
-    wait(NULL);// wait_startetd_process(alzr);
     putchar('>');
-    while (cnt->alzr->code == ok)
+    while (cnt->alzr->code.major_code == ok)
     {
         cnt->alzr->ch = getchar();
         process_symbol(cnt->alzr);
-        if (cnt->alzr->code == add_char)
+        if (cnt->alzr->code.major_code == add_char)
         {
             my_str_pushback_char(cnt->alzr->word, cnt->alzr->ch);
-            cnt->alzr->code = ok;
+            cnt->alzr->code.major_code = ok;
         }
     }
 
-    cnt->code = get_analyzator_code(cnt->alzr);
+    set_control_code(cnt);
 
     return;
 }
@@ -86,7 +75,7 @@ void dialog(context *cnt)
 
 int dialog_codes_process(context *cnt)
 {
-    switch (cnt->code)
+    switch (cnt->code.major_code)
     {
     case ok:
         return 1;
@@ -109,10 +98,13 @@ int dialog_codes_process(context *cnt)
     case alloc_error:
         printf("Error: can't alloc memory\n");
         break;
+    case not_implemented:
+        printf("Future not implemented yet\n");
+        break;
     default:
         break;
     }
-
+    minor_code_correction_after_error(cnt);
     fflush(stdout);
     return 1;
 }
@@ -131,15 +123,13 @@ void out_input(my_list *lst)
 
 int end_dialog(context *cnt)
 {
-    if (cnt->alzr->words)
-    {
-        clear_list(cnt->alzr->words);
-        my_list_destroy(cnt->alzr->words);
-    }
-    if (cnt->alzr->word)
-        my_str_destroy(cnt->alzr->word);
+    clear_analyzator(cnt->alzr);
+    return 1;
+}
 
-    cnt->alzr->word = NULL;
-    cnt->alzr->words = NULL;
+int minor_code_correction_after_error(context *cnt)
+{
+    if (cnt->code.major_code != exect_external)
+        cnt->code.minore_code.codes.fg_process = 0;
     return 1;
 }
