@@ -17,17 +17,35 @@ enum codes
     backslash_error,
     analyzartor_error_processed,
     alloc_error,
-    start_dialog_error
+    start_dialog_error,
+    delimiter_error,
+    not_implemented,
+    emty_input,
+
 };
 
+typedef struct control_codes
+{
+    int major_code;
+    union
+    {
+        struct bits
+        {
+            unsigned int fg_process : 1;
+        } codes;
+        unsigned int raw;
+
+    } minore_code;
+}control_codes;
 typedef struct analyzator
 {
     my_string *word;
     my_list *words;
     int ch;
     int prev_char;
+    int last_delimiter;
     int quotes;
-    int code;
+    control_codes code;
 } analyzator;
 
 typedef struct process_handle
@@ -41,7 +59,7 @@ typedef struct context
 {
     analyzator *alzr;
     process_handle *proc_hanler;
-    int code;
+    control_codes code;
 } context;
 
 #endif /* !REINCLUDE_MY_TYPES_SENTRY */
