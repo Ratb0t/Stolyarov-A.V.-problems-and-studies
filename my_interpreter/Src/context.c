@@ -22,9 +22,11 @@ context *create_and_init_context()
         free(shell);
         return NULL;
     }
-
+        
     init_analizator(shell->alzr);
     init_process_handle(shell->proc_hanler);
+    shell->code.major_code = ok;
+    shell->code.minore_code.raw = 0;
     return shell;
 }
 void destroy_context(context *cnt)
@@ -37,8 +39,7 @@ void destroy_context(context *cnt)
 
 void context_reset_analizator(context *cnt)
 {
-    init_analizator(cnt->alzr);
-    analyzator_code_error_handler(cnt->alzr);
+    reset_analizator(cnt->alzr);
     cnt->code = cnt->alzr->code;
     return;
 }
