@@ -63,7 +63,7 @@ void dialog(context *cnt)
     while (cnt->alzr->code.major_code == ok)
     {
         cnt->alzr->ch = getchar();
-        process_symbol(cnt->alzr);
+        process_symbol(cnt);
         if (cnt->alzr->code.major_code == add_char)
         {
             my_str_pushback_char(cnt->alzr->word, cnt->alzr->ch);
@@ -91,7 +91,7 @@ int dialog_codes_process(context *cnt)
             return dialog_codes_process(cnt);
         break;
     case fork_error:
-        printf("Failed to start the program. Fork\n");
+        printf("Failed to start the program. Fork.\n");
         break;
     case home_env_error:
         printf("The 'HOME' environment variable does not exist or does not contain the path to the home directory.\n");
@@ -100,11 +100,10 @@ int dialog_codes_process(context *cnt)
         out_input(cnt->alzr->words);
         break;
     case alloc_error:
-        printf("Error: can't alloc memory\n");
+        printf("Error: can't alloc memory.\n");
         break;
     case not_implemented:
-        printf("Future not implemented yet\n");
-        break;
+        printf("Future not implemented yet.\n");
     default:
         break;
     }
