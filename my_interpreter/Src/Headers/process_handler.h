@@ -16,7 +16,7 @@ void destroy_process_handle(process_handle *ph);
 void init_process_handle(process_handle *ph);
 
 /***************************************************************/
-int format_cmd_line(analyzator *alzr, char *cmd_line[]);
+int format_cmd_line(context *cnt, char *cmd_line[]);
 
 /***************************************************************/
 int process_cd_command(context *cnt, char *path);

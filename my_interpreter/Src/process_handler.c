@@ -26,18 +26,25 @@ void init_process_handle(process_handle *ph)
         ph->fg_pid = 0;
         ph->num_running_processes = 0;
         ph->need_init = 0;
+        ph->input_redirection = NULL;
+        ph->output_redirection = NULL;
     }
     return;
 }
 
-
-int format_cmd_line(analyzator *alzr, char *cmd_line[])
+int format_cmd_line(context *cnt, char *cmd_line[])
 {
-    my_list_iterator it = my_list_get_first(alzr->words);
+    my_list_iterator it = my_list_get_first(cnt->alzr->words);
     int i = 0;
+    my_string *str;
     for (; it; ++i, it = it->next)
     {
-        cmd_line[i] = (char *)my_str_get_data((my_string *)(it->data_holder.as_void));
+        str = (my_string *)(it->data_holder.as_void);
+        if (str != cnt->proc_hanler->input_redirection && 
+            str != cnt->proc_hanler->output_redirection)
+        {
+            cmd_line[i] = (char *)my_str_get_data(str);
+        }
     }
     cmd_line[i] = NULL;
     return 1;
@@ -89,7 +96,7 @@ int start_external_prog(context *cnt)
         return 0;
     }
 
-    format_cmd_line(cnt->alzr, cmd_line);
+    format_cmd_line(cnt, cmd_line);
 
     if (my_strcmp(cmd_line[0], "cd") == compare_equal)
     {
@@ -109,7 +116,7 @@ int start_external_prog(context *cnt)
             putchar('>');
             exit(1);
         }
-        if (pid < 0)
+        if (pid == -1)
         {
             cnt->code.major_code = fork_error;
             cnt->proc_hanler->num_running_processes -= 1;

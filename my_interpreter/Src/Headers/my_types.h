@@ -13,6 +13,8 @@ enum codes
     exect_external,
     fork_error,
     home_env_error,
+    redirection_error,
+    redirection_symbol_error,
     quotes_error,
     backslash_error,
     analyzartor_error_processed,
@@ -24,6 +26,13 @@ enum codes
 
 };
 
+enum redirections_codes
+{
+    truncate_file = 1,
+    append_to_file,
+    redirec_err
+};
+
 typedef struct control_codes
 {
     int major_code;
@@ -32,6 +41,10 @@ typedef struct control_codes
         struct bits
         {
             unsigned int fg_process : 1;
+            unsigned int out_redirect : 2;
+            unsigned int in_redirect : 1;
+            unsigned int set_in_redirect_path : 1;
+            unsigned int set_out_redirect_path : 1;
         } codes;
         unsigned int raw;
 
@@ -53,6 +66,8 @@ typedef struct process_handle
     int num_running_processes;
     int fg_pid;
     int need_init;
+    my_string *input_redirection;
+    my_string *output_redirection;
 } process_handle;
 
 typedef struct context
