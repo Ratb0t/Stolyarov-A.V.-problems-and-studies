@@ -26,7 +26,7 @@ void set_control_code(context *cnt);
 
 void clear_stdin(int ch);
 
-int process_symbol(analyzator *alzr);
+int process_symbol(context *cnt);
 
 /*******************************************************/
 

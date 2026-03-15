@@ -14,7 +14,7 @@ void set_control_code(context *cnt)
     {
         analyzator_code_error_handler(cnt->alzr);
         if (my_list_get_len(cnt->alzr->words) && cnt->alzr->code.major_code == end_input_line)
-            cnt->alzr->code.major_code = exect_external; // cnt->code.major_code = print_input; //
+            cnt->alzr->code.major_code = print_input; // cnt->alzr->code.major_code = exect_external; //
         else
             cnt->alzr->code.major_code = emty_input;
     }
@@ -38,7 +38,7 @@ void clear_list(my_list *lst)
 
 void analyzator_code_error_handler(analyzator *alzr)
 {
-    
+    const char *analyzator_err_desc;
     switch (alzr->code.major_code)
     {
     case ok:
@@ -46,22 +46,33 @@ void analyzator_code_error_handler(analyzator *alzr)
         return;
         break;
     case quotes_error:
-        printf("Analyzator error: unmatched quotes\n");
+        analyzator_err_desc = "unmatched quotes\n";
         break;
     case alloc_error:
-        printf("Analyzator error: can't alloc memory\n");
+        analyzator_err_desc = "can't alloc memory\n";
         break;
     case backslash_error:
-        printf("Analyzator error: unknown escape sequence\n");
+        analyzator_err_desc = "unknown escape sequence\n";
         break;
     case delimiter_error:
         if(alzr->ch != '\n')
             clear_stdin('\n');
-        printf("Analyzator error: wrong delimiter\n");
+        analyzator_err_desc = "wrong delimiter\n";
         break;
-    default:
+    case redirection_error:
+        if (alzr->ch != '\n')
+            clear_stdin('\n');
+        analyzator_err_desc = "redirect error\n";
+        break;
+    case redirection_symbol_error:
+        if (alzr->ch != '\n')
+            clear_stdin('\n');
+        analyzator_err_desc = "an unexpected character was encountered after redirection.\n";
+        break;
+        default:
         break;
     }
+    printf("Analyzator error: %s", analyzator_err_desc);
     alzr->code.major_code = analyzartor_error_processed;
     //alzr->code.minore_code.codes.fg_process = 0;
     return;
@@ -98,8 +109,9 @@ void destroy_analyzator(analyzator *alzr)
     return;
 }
 
-int insetr_word(analyzator *alzr)
+int insetr_word(context *cnt)
 {
+    analyzator *alzr = cnt->alzr;
     if (!(alzr->quotes & 1))
     {
         if (my_str_get_len(alzr->word) || alzr->quotes)
@@ -112,6 +124,16 @@ int insetr_word(analyzator *alzr)
                     clear_stdin('\n');
                 alzr->code.major_code = alloc_error;
                 return quite;
+            }
+            if (alzr->code.minore_code.codes.set_in_redirect_path)
+            {
+                cnt->proc_hanler->input_redirection = alzr->word;
+                alzr->code.minore_code.codes.set_in_redirect_path = 0;
+            }
+            if (alzr->code.minore_code.codes.set_out_redirect_path)
+            {
+                cnt->proc_hanler->output_redirection = alzr->word;
+                alzr->code.minore_code.codes.set_out_redirect_path = 0;
             }
         }
         alzr->quotes = 0;
@@ -131,21 +153,57 @@ int escape_sequence_analysis(analyzator *alzr)
 
     if (alzr->prev_char == '\\' && alzr->ch == '\\')
         return '\n'; /*\n не может быть предыдущим символом т.к. является конечным*/
-
+    
+    if(alzr->ch == ' ')
+        return alzr->prev_char;
+        
     return alzr->ch;
+}
+
+int check_on_word_after_reditrection(analyzator *alzr)
+{
+    switch (alzr->ch)
+    {
+    case '>':
+        if (alzr->prev_char == '>' && alzr->code.minore_code.codes.out_redirect != redirec_err)
+            return 1;
+    case ';':
+    case '|':
+    case '(':
+    case ')':
+    case '<':
+    case '&':
+        //if(alzr->prev_char == 0)
+            //return 0;
+        return 0;
+        break;
+    default:
+        break;
+    }
+    if((alzr->prev_char == '>' || alzr->prev_char == '<') && alzr->ch == '\n')
+        return 0;
+    
+    return 1;
 }
 
 int delimiter_analyse(analyzator *alzr)
 {
+    static int need_check_redirect = 0;
     if ((alzr->quotes & 1))
-        return alzr->ch;
+        return ok;
+    if (need_check_redirect && !check_on_word_after_reditrection(alzr))
+    {
+        alzr->code.major_code = redirection_symbol_error;
+        return quite;
+    }
+    need_check_redirect = 0;
     switch (alzr->ch)
     {
     case '&':
         if(alzr->prev_char == 0)
         {
             alzr->code.major_code = delimiter_error;
-            break;
+            return quite;
         }
         /*
         if (alzr->prev_char == '&') => &&
@@ -158,7 +216,6 @@ int delimiter_analyse(analyzator *alzr)
         }
         break;
         */
-
         if (alzr->prev_char != '&')
         {
             alzr->code.major_code = ok;
@@ -166,9 +223,38 @@ int delimiter_analyse(analyzator *alzr)
             break; /*т.к. не реализован '&&' использую fall-through*/
         }
     case '>':
-        /*if (alzr->prev_char == '>')
-            "Сделать что-то если >>";*/
+        alzr->code.minore_code.codes.out_redirect += 1;
+        alzr->code.major_code = ok;
+        alzr->code.minore_code.codes.set_out_redirect_path = 1;
+        need_check_redirect = 1;
+        if (alzr->code.minore_code.codes.out_redirect == truncate_file)
+        {
+            break;
+        }
+        if (alzr->prev_char == '>' && alzr->last_delimiter == '>' && 
+            alzr->code.minore_code.codes.out_redirect == append_to_file)
+        {
+            break;
+        }
+        alzr->code.major_code = redirection_error;
+        alzr->code.minore_code.codes.set_out_redirect_path = 0;
+        need_check_redirect = 0;
+        return quite;
+        break;
     case '<':
+        if(alzr->code.minore_code.codes.in_redirect == 0)
+        {
+            alzr->code.minore_code.codes.in_redirect = 1;
+            alzr->code.major_code = ok;
+            alzr->code.minore_code.codes.set_in_redirect_path = 1;
+            need_check_redirect = 1;
+            break;
+        }
+        alzr->code.major_code = redirection_error;
+        alzr->code.minore_code.codes.set_in_redirect_path = 0;
+        need_check_redirect = 0;
+        return quite;
+        break;
     case '|':
         /*if (alzr->prev_char == '|')
             "Сделать что-то если ||";*/
@@ -188,16 +274,18 @@ int delimiter_analyse(analyzator *alzr)
                 alzr->code.minore_code.codes.fg_process = 1;
             }
         }
-        return alzr->ch;
+        return ok;
         break;
     }
     alzr->last_delimiter = alzr->ch;
-    return alzr->ch;
+    return ok;
 }
 
-int process_symbol(analyzator *alzr)
+int process_symbol(context *cnt)
 {
+    analyzator *alzr = cnt->alzr;
     alzr->code.major_code = add_char;
+    if(alzr->ch != ' ' && delimiter_analyse(alzr) != ok) return quite;
     switch (alzr->ch)
     {
     case EOF:
@@ -217,19 +305,27 @@ int process_symbol(analyzator *alzr)
         break;
     case '\n':
         alzr->code.major_code = end_input_line;
-        insetr_word(alzr);
+        insetr_word(cnt);
+        break;
+    case '>':
+        if(alzr->code.minore_code.codes.set_out_redirect_path == truncate_file)
+        {
+            if (!(alzr->quotes & 1))
+                alzr->code.major_code = ok;
+            insetr_word(cnt);
+        }
         break;
     case '\t':
+    case '<':
     case ' ':
         if (!(alzr->quotes & 1))
             alzr->code.major_code = ok;
-        insetr_word(alzr);
+        insetr_word(cnt);
         break;
     default:
         break;
     }
 
-    delimiter_analyse(alzr);
     alzr->prev_char = escape_sequence_analysis(alzr);
     return ok;
 }
