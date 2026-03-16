@@ -1,5 +1,6 @@
 #include "analyzator.h"
 #define PRINT_VARIANT_
+static void analyzator_code_error_handler(analyzator *alzr);
 
 void set_control_code(context *cnt)
 {
