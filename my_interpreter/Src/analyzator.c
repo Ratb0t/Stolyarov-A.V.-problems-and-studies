@@ -1,4 +1,5 @@
 #include "analyzator.h"
+#define PRINT_VARIANT_
 
 void set_control_code(context *cnt)
 {
@@ -14,7 +15,11 @@ void set_control_code(context *cnt)
     {
         analyzator_code_error_handler(cnt->alzr);
         if (my_list_get_len(cnt->alzr->words) && cnt->alzr->code.major_code == end_input_line)
-            cnt->alzr->code.major_code = print_input; // cnt->alzr->code.major_code = exect_external; //
+#       ifdef PRINT_VARIANT
+            cnt->alzr->code.major_code = print_input; //
+#       else
+            cnt->alzr->code.major_code = exect_external;  //
+#       endif
         else
             cnt->alzr->code.major_code = emty_input;
     }
@@ -24,7 +29,7 @@ void set_control_code(context *cnt)
     return;
 }
 
-void clear_list(my_list *lst)
+static void clear_list(my_list *lst)
 {
     my_list_iterator it;
     while ((it = my_list_get_first(lst)))
@@ -36,7 +41,7 @@ void clear_list(my_list *lst)
     return;
 }
 
-void analyzator_code_error_handler(analyzator *alzr)
+static void analyzator_code_error_handler(analyzator *alzr)
 {
     const char *analyzator_err_desc;
     switch (alzr->code.major_code)
@@ -109,7 +114,7 @@ void destroy_analyzator(analyzator *alzr)
     return;
 }
 
-int insetr_word(context *cnt)
+static int insert_word(context *cnt)
 {
     analyzator *alzr = cnt->alzr;
     if (!(alzr->quotes & 1))
@@ -125,23 +130,23 @@ int insetr_word(context *cnt)
                 alzr->code.major_code = alloc_error;
                 return quite;
             }
-            if (alzr->code.minore_code.codes.set_in_redirect_path)
-            {
-                cnt->proc_hanler->input_redirection = alzr->word;
-                alzr->code.minore_code.codes.set_in_redirect_path = 0;
-            }
-            if (alzr->code.minore_code.codes.set_out_redirect_path)
-            {
-                cnt->proc_hanler->output_redirection = alzr->word;
-                alzr->code.minore_code.codes.set_out_redirect_path = 0;
-            }
+        }
+        if (alzr->code.minore_code.codes.set_in_redirect_path)
+        {
+            cnt->proc_hanler->input_redirection = alzr->word;
+            alzr->code.minore_code.codes.set_in_redirect_path = 0;
+        }
+        if (alzr->code.minore_code.codes.set_out_redirect_path)
+        {
+            cnt->proc_hanler->output_redirection = alzr->word;
+            alzr->code.minore_code.codes.set_out_redirect_path = 0;
         }
         alzr->quotes = 0;
     }
     return ok;
 }
 
-int escape_sequence_analysis(analyzator *alzr)
+static int escape_sequence_analysis(analyzator *alzr)
 {
     // printf("prev_char == %d ch == %d\n", alzr->prev_char, alzr->ch);
     if (alzr->prev_char == '\\' && alzr->ch != '\\' && alzr->ch != '\"')
@@ -160,7 +165,7 @@ int escape_sequence_analysis(analyzator *alzr)
     return alzr->ch;
 }
 
-int check_on_word_after_reditrection(analyzator *alzr)
+static int is_word_after_redirect(analyzator *alzr)
 {
     switch (alzr->ch)
     {
@@ -191,7 +196,7 @@ int delimiter_analyse(analyzator *alzr)
     static int need_check_redirect = 0;
     if ((alzr->quotes & 1))
         return ok;
-    if (need_check_redirect && !check_on_word_after_reditrection(alzr))
+    if (need_check_redirect && !is_word_after_redirect(alzr))
     {
         alzr->code.major_code = redirection_symbol_error;
         return quite;
@@ -225,10 +230,11 @@ int delimiter_analyse(analyzator *alzr)
     case '>':
         alzr->code.minore_code.codes.out_redirect += 1;
         alzr->code.major_code = ok;
-        alzr->code.minore_code.codes.set_out_redirect_path = 1;
+        
         need_check_redirect = 1;
         if (alzr->code.minore_code.codes.out_redirect == truncate_file)
         {
+            alzr->code.minore_code.codes.set_out_redirect_path = 1;
             break;
         }
         if (alzr->prev_char == '>' && alzr->last_delimiter == '>' && 
@@ -245,13 +251,13 @@ int delimiter_analyse(analyzator *alzr)
         if(alzr->code.minore_code.codes.in_redirect == 0)
         {
             alzr->code.minore_code.codes.in_redirect = 1;
-            alzr->code.major_code = ok;
             alzr->code.minore_code.codes.set_in_redirect_path = 1;
+            alzr->code.major_code = ok;
             need_check_redirect = 1;
             break;
         }
-        alzr->code.major_code = redirection_error;
         alzr->code.minore_code.codes.set_in_redirect_path = 0;
+        alzr->code.major_code = redirection_error;
         need_check_redirect = 0;
         return quite;
         break;
@@ -305,14 +311,14 @@ int process_symbol(context *cnt)
         break;
     case '\n':
         alzr->code.major_code = end_input_line;
-        insetr_word(cnt);
+        insert_word(cnt);
         break;
     case '>':
-        if(alzr->code.minore_code.codes.set_out_redirect_path == truncate_file)
+        if (alzr->code.minore_code.codes.out_redirect == truncate_file)
         {
             if (!(alzr->quotes & 1))
                 alzr->code.major_code = ok;
-            insetr_word(cnt);
+            insert_word(cnt);
         }
         break;
     case '\t':
@@ -320,7 +326,7 @@ int process_symbol(context *cnt)
     case ' ':
         if (!(alzr->quotes & 1))
             alzr->code.major_code = ok;
-        insetr_word(cnt);
+        insert_word(cnt);
         break;
     default:
         break;
