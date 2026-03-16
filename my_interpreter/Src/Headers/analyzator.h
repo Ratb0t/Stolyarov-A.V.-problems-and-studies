@@ -5,8 +5,6 @@
 #include "my_types.h"
 #include "my_list.h"
 
-void analyzator_code_error_handler(analyzator *alzr);
-
 /********************************************************************/
 analyzator *create_analyzator();
 
