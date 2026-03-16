@@ -3,6 +3,10 @@
 
 extern int end_dialog(context *cnt);
 extern void destroy_context(context *cnt);
+
+static int format_cmd_line(context *cnt, char *cmd_line[]);
+static int process_cd_command(context *cnt, char *path);
+
 process_handle *create_process_handle()
 {
     process_handle *ph = malloc(sizeof(process_handle));
@@ -32,7 +36,7 @@ void init_process_handle(process_handle *ph)
     return;
 }
 
-int format_cmd_line(context *cnt, char *cmd_line[])
+static int format_cmd_line(context *cnt, char *cmd_line[])
 {
     my_list_iterator it = my_list_get_first(cnt->alzr->words);
     int i = 0;
@@ -45,12 +49,14 @@ int format_cmd_line(context *cnt, char *cmd_line[])
         {
             cmd_line[i] = (char *)my_str_get_data(str);
         }
+        else
+            cmd_line[i] = NULL;
     }
     cmd_line[i] = NULL;
     return 1;
 }
 
-int process_cd_command(context *cnt, char *path)
+static int process_cd_command(context *cnt, char *path)
 {
     /*Cd не является отдельным процессом*/
     cnt->code.minore_code.codes.fg_process = 0;
@@ -87,8 +93,82 @@ int process_cd_command(context *cnt, char *path)
     return 1;
 }
 
+static int get_fd_for_redirection_io(context *cnt, int *fd_in, int *fd_out)
+{
+    if (cnt->code.minore_code.codes.in_redirect)
+    {
+        const char *filename = my_str_get_data(cnt->proc_hanler->input_redirection);
+        cnt->proc_hanler->input_redirection = NULL;
+        *fd_in = open(filename, O_RDONLY, 0666);
+        if (*fd_in == -1)
+        {
+            perror(filename);
+            return 0;
+        }
+    }
+    if(cnt->code.minore_code.codes.out_redirect)
+    {
+        int open_flags = O_CREAT | O_WRONLY;
+        if (cnt->code.minore_code.codes.out_redirect == truncate_file)
+            open_flags |= O_TRUNC;
+        else
+            open_flags |= O_APPEND;
+
+        const char *filename = my_str_get_data(cnt->proc_hanler->output_redirection);
+        cnt->proc_hanler->output_redirection = NULL;
+        *fd_out = open(filename, open_flags, 0666);
+        if (*fd_out == -1)
+        {
+            perror(filename);
+            return 0;
+        }
+    }
+    return 1;
+}
+
+static void run_target_program(context *cnt, char *cmd_line[], int fd_in, int fd_out)
+{
+    if (cnt->code.minore_code.codes.in_redirect)
+    {
+        dup2(fd_in, STDIN_FILENO);
+        close(fd_in);
+    }
+    if (cnt->code.minore_code.codes.out_redirect)
+    {
+        dup2(fd_out, STDOUT_FILENO);
+        close(fd_out);
+    }
+    execvp(cmd_line[0], cmd_line);
+    perror("Command error");
+    free(cmd_line);
+    destroy_context(cnt);
+    //putchar('>');
+    exit(1);
+    return;
+}
+
+static void spawn_child_process(context *cnt, char *cmd_line[], int fd_in, int fd_out)
+{
+    int pid = fork();
+    if (pid == 0)
+    {
+        run_target_program(cnt, cmd_line, fd_in, fd_out);
+    }
+    if (pid == -1)
+    {
+        cnt->code.major_code = fork_error;
+        cnt->proc_hanler->num_running_processes -= 1;
+    }
+    cnt->proc_hanler->num_running_processes += 1;
+    if (cnt->code.minore_code.codes.fg_process)
+        cnt->proc_hanler->fg_pid = pid;
+    return;
+}
+
 int start_external_prog(context *cnt)
 {
+    int fd_in = -1, fd_out = -1;
+    int code = 1;
     char **cmd_line = malloc(sizeof(char *) * (my_list_get_len(cnt->alzr->words) + 1));
     if (!cmd_line)
     {
@@ -100,34 +180,24 @@ int start_external_prog(context *cnt)
 
     if (my_strcmp(cmd_line[0], "cd") == compare_equal)
     {
-        int code = process_cd_command(cnt, cmd_line[1]);
-        free(cmd_line);
-        return code;
+        code = process_cd_command(cnt, cmd_line[1]);
     }
     else
     {
-        int pid = fork();
-        if (pid == 0)
+        code = get_fd_for_redirection_io(cnt, &fd_in, &fd_out);
+        if(code)
         {
-            execvp(cmd_line[0], cmd_line);
-            perror("Command error");
-            free(cmd_line);
-            destroy_context(cnt);
-            putchar('>');
-            exit(1);
+            spawn_child_process(cnt, cmd_line, fd_in, fd_out);
+
+            if(cnt->code.minore_code.codes.in_redirect && fd_in != -1)
+                close(fd_in);
+            if(cnt->code.minore_code.codes.out_redirect && fd_out != -1)
+                close(fd_out);
         }
-        if (pid == -1)
-        {
-            cnt->code.major_code = fork_error;
-            cnt->proc_hanler->num_running_processes -= 1;
-        }
-        cnt->proc_hanler->num_running_processes += 1;
-        if(cnt->code.minore_code.codes.fg_process)
-            cnt->proc_hanler->fg_pid = pid;
     }
 
     free(cmd_line);
-    return 1;
+    return code;
 }
 
 /*На данный момент времени не нужна*/
