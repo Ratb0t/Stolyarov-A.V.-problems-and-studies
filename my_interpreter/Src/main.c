@@ -27,7 +27,7 @@ int main()
 int start_dialog(context *cnt)
 {
     wait_foreground_process(cnt);
-    cleaning_background_processes(cnt);
+    /*cleaning_background_processes(cnt);*/
     context_reset_analizator(cnt);
     int code;
     if (cnt->code.major_code != ok)
