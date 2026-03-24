@@ -1,6 +1,10 @@
 #include "analyzator.h"
 #include "process_handler.h"
 
+static sig_atomic_t fg_pid;
+static void cleaning_background_processes(int sig);
+
+
 extern int end_dialog(context *cnt);
 extern void destroy_context(context *cnt);
 
@@ -27,11 +31,12 @@ void init_process_handle(process_handle *ph)
 {
     if(ph->need_init)
     {
-        ph->fg_pid = 0;
-        ph->num_running_processes = 0;
+        /*ph->fg_pid = 0;
+        ph->num_running_processes = 0;*/
         ph->need_init = 0;
         ph->input_redirection = NULL;
         ph->output_redirection = NULL;
+        signal(SIGCHLD, cleaning_background_processes);
     }
     return;
 }
@@ -157,11 +162,14 @@ static void spawn_child_process(context *cnt, char *cmd_line[], int fd_in, int f
     if (pid == -1)
     {
         cnt->code.major_code = fork_error;
-        cnt->proc_hanler->num_running_processes -= 1;
+        /*cnt->proc_hanler->num_running_processes -= 1;*/
     }
-    cnt->proc_hanler->num_running_processes += 1;
+    /*cnt->proc_hanler->num_running_processes += 1;
     if (cnt->code.minore_code.codes.fg_process)
-        cnt->proc_hanler->fg_pid = pid;
+        cnt->proc_hanler->fg_pid = pid;*/
+    
+    if (cnt->code.minore_code.codes.fg_process)
+        fg_pid = pid;
     return;
 }
 
@@ -203,36 +211,50 @@ int start_external_prog(context *cnt)
 /*На данный момент времени не нужна*/
 int wait_startetd_process_before_quite(context *cnt)
 {
-    return 0;
-    printf("Wait child process, before \n");
-    while (cnt->proc_hanler->num_running_processes) // while (wait(NULL))
-    {
-        if (wait4(-1, NULL, WNOHANG, NULL) > 0)
-            cnt->proc_hanler->num_running_processes -= 1;
-    }
     return 1;
+    // printf("Wait child process, before \n");
+    // while (cnt->proc_hanler->num_running_processes) // while (wait(NULL))
+    // {
+    //     if (wait4(-1, NULL, WNOHANG, NULL) > 0)
+    //         cnt->proc_hanler->num_running_processes -= 1;
+    // }
+    // return 1;
 }
 
 
-int cleaning_background_processes(context *cnt)
+static void cleaning_background_processes(int sig)
 {
-    while (wait4(-1, NULL, WNOHANG, NULL) > 0)
+    signal(SIGCHLD, cleaning_background_processes);
+    int p;
+    while ((p = wait4(-1, NULL, WNOHANG, NULL)) > 0)
     {
-        cnt->proc_hanler->num_running_processes -= 1;
+        if(p == fg_pid)
+            fg_pid = 0;
+        /*cnt->proc_hanler->num_running_processes -= 1;*/
+        /*write(STDOUT_FILENO, "cleaning_bg\n", 12);*/
     }
-    return 1;
+    return;
 }
 
 int wait_foreground_process(context *cnt)
 {
-    if (cnt->code.minore_code.codes.fg_process)
+    if (cnt->code.minore_code.codes.fg_process && fg_pid)
     {
+        /*printf("wait_fg_process %d\n", fg_pid);*/
+        signal(SIGCHLD, SIG_DFL);
         int p;
-        while((p = wait(NULL)) > 0 && p != cnt->proc_hanler->fg_pid)
+        /*while((p = wait(NULL)) > 0 && p != cnt->proc_hanler->fg_pid)
         {
-            cnt->proc_hanler->num_running_processes -= 1;
+            cnt->proc_hanler->num_running_processes -= 1;/
         }
-        cnt->proc_hanler->num_running_processes -= 1;
+        cnt->proc_hanler->num_running_processes -= 1;*/
+        while ((p = wait(NULL)) > 0 && p != fg_pid)
+        {
+            /*printf("waited %d\n", p);*/
+        }
+        /*printf("waited %d\n", p);*/
+        fg_pid = 0;
+        signal(SIGCHLD, cleaning_background_processes);
     }
     
     return 1;

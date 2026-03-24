@@ -63,8 +63,8 @@ typedef struct analyzator
 
 typedef struct process_handle
 {
-    int num_running_processes;
-    int fg_pid;
+    /*int num_running_processes;
+    int fg_pid;*/
     int need_init;
     my_string *input_redirection;
     my_string *output_redirection;

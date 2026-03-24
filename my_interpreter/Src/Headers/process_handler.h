@@ -10,6 +10,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+/*#define _POSIX_C_SOURCE 199309L*/
+#include <signal.h>
+#include <errno.h>
+
 process_handle *create_process_handle();
 
 void destroy_process_handle(process_handle *ph);
@@ -20,7 +24,7 @@ void init_process_handle(process_handle *ph);
 int start_external_prog(context *cnt);
 /***************************************************************/
 
-int cleaning_background_processes(context *cnt);
+/*int cleaning_background_processes(context *cnt);*/
 
 int wait_startetd_process_before_quite(context *cnt);
 
