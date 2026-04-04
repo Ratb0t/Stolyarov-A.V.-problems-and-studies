@@ -40,6 +40,7 @@ void destroy_context(context *cnt)
 void context_reset_analizator(context *cnt)
 {
     reset_analizator(cnt->alzr);
-    cnt->code = cnt->alzr->code;
+    cnt->code.minore_code.raw = cnt->alzr->code.minore_code.raw;
+    cnt->code.major_code = cnt->alzr->code.major_code;
     return;
 }
