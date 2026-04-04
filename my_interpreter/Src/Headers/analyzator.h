@@ -22,10 +22,9 @@ int my_strcmp(const char *str1, const char *str2);
 /********************************************************************/
 void set_control_code(context *cnt);
 
-void clear_stdin(int ch);
-
 int process_symbol(context *cnt);
 
+int flush_stdin(context *cnt);
 /*******************************************************/
 
 #endif /* !REINCLUDE_GUARD_ANALYZATOR_SENTRY */

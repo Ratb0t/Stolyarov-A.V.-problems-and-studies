@@ -23,14 +23,18 @@ enum codes
     delimiter_error,
     not_implemented,
     emty_input,
+    clear_stdin,
+
 
 };
 
-enum redirections_codes
+enum lexeme_type
 {
-    truncate_file = 1,
+    default_word = 1,
+    truncate_file,
     append_to_file,
-    redirec_err
+    read_from_file,
+    background_process,
 };
 
 typedef struct control_codes
@@ -50,9 +54,13 @@ typedef struct control_codes
 
     } minore_code;
 }control_codes;
+
 typedef struct analyzator
 {
-    my_string *word;
+    struct lexeme{
+        my_string *word;
+        enum lexeme_type type;
+    } lexeme;
     my_list *words;
     int ch;
     int prev_char;

@@ -51,7 +51,9 @@ int dispatch_dialog_error(context *alzr)
     printf("Try again? y/n: ");
     if ((getchar() | 0x20) == 'y')
     {
-        clear_stdin('\n');
+        while (getchar() != '\n')
+        {}
+        
         return ok;
     }
     return quite;
@@ -66,11 +68,11 @@ void dialog(context *cnt)
         process_symbol(cnt);
         if (cnt->alzr->code.major_code == add_char)
         {
-            my_str_pushback_char(cnt->alzr->word, cnt->alzr->ch);
+            my_str_pushback_char(cnt->alzr->lexeme.word, cnt->alzr->ch);
             cnt->alzr->code.major_code = ok;
         }
     }
-
+    flush_stdin(cnt);
     set_control_code(cnt);
 
     return;
@@ -104,6 +106,7 @@ int dialog_codes_process(context *cnt)
         break;
     case not_implemented:
         printf("Future not implemented yet.\n");
+        cnt->alzr->code.major_code = clear_stdin;
     default:
         break;
     }

@@ -1,5 +1,12 @@
 #include "analyzator.h"
-#define PRINT_VARIANT_
+#define PRINT_VARIANT
+#define MAX_DELIMITER_LEN 2
+
+typedef int (*delimiter_function)(analyzator *alzr);
+const delimiter_function delimiter_funсs_table[] = {
+
+};
+
 static void analyzator_code_error_handler(analyzator *alzr);
 
 void set_control_code(context *cnt)
@@ -49,37 +56,33 @@ static void analyzator_code_error_handler(analyzator *alzr)
     {
     case ok:
     case end_input_line:
+    case add_char:
         return;
         break;
     case quotes_error:
-        analyzator_err_desc = "unmatched quotes\n";
+        analyzator_err_desc = "unmatched quotes.";
         break;
     case alloc_error:
-        analyzator_err_desc = "can't alloc memory\n";
+        analyzator_err_desc = "can't alloc memory.";
         break;
     case backslash_error:
-        analyzator_err_desc = "unknown escape sequence\n";
+        analyzator_err_desc = "unknown escape sequence.";
         break;
     case delimiter_error:
-        if(alzr->ch != '\n')
-            clear_stdin('\n');
-        analyzator_err_desc = "wrong delimiter\n";
+        analyzator_err_desc = "wrong delimiter.";
         break;
     case redirection_error:
-        if (alzr->ch != '\n')
-            clear_stdin('\n');
-        analyzator_err_desc = "redirect error\n";
+        analyzator_err_desc = "redirect error.";
         break;
     case redirection_symbol_error:
-        if (alzr->ch != '\n')
-            clear_stdin('\n');
-        analyzator_err_desc = "an unexpected character was encountered after redirection.\n";
+        analyzator_err_desc = "an unexpected character was encountered after redirection.";
         break;
-        default:
+    default:
+        return;
         break;
     }
-    printf("Analyzator error: %s", analyzator_err_desc);
-    alzr->code.major_code = analyzartor_error_processed;
+    printf("Analyzator error: %s\n", analyzator_err_desc);
+    alzr->code.major_code = clear_stdin;
     //alzr->code.minore_code.codes.fg_process = 0;
     return;
 }
@@ -99,10 +102,10 @@ int clear_analyzator(analyzator *alzr)
         clear_list(alzr->words);
         my_list_destroy(alzr->words);
     }
-    if (alzr->word)
-        my_str_destroy(alzr->word);
+    if (alzr->lexeme.word)
+        my_str_destroy(alzr->lexeme.word);
 
-    alzr->word = NULL;
+    alzr->lexeme.word = NULL;
     alzr->words = NULL;
     return 1;
 
@@ -120,26 +123,25 @@ static int insert_word(context *cnt)
     analyzator *alzr = cnt->alzr;
     if (!(alzr->quotes & 1))
     {
-        if (my_str_get_len(alzr->word) || alzr->quotes)
+        if (my_str_get_len(alzr->lexeme.word) || alzr->quotes)
         {
-            my_list_push_back(alzr->words, (top_type){.as_void = alzr->word});
-            alzr->word = my_str_create(0);
-            if (!alzr->word)
+            my_list_push_back(alzr->words, (top_type){.as_void = alzr->lexeme.word});
+            alzr->lexeme.word = my_str_create(0);
+            if (!alzr->lexeme.word)
             {
-                if (alzr->ch != '\n')
-                    clear_stdin('\n');
                 alzr->code.major_code = alloc_error;
                 return quite;
             }
+            alzr->lexeme.type = default_word;
         }
         if (alzr->code.minore_code.codes.set_in_redirect_path)
         {
-            cnt->proc_hanler->input_redirection = alzr->word;
+            cnt->proc_hanler->input_redirection = alzr->lexeme.word;
             alzr->code.minore_code.codes.set_in_redirect_path = 0;
         }
         if (alzr->code.minore_code.codes.set_out_redirect_path)
         {
-            cnt->proc_hanler->output_redirection = alzr->word;
+            cnt->proc_hanler->output_redirection = alzr->lexeme.word;
             alzr->code.minore_code.codes.set_out_redirect_path = 0;
         }
         alzr->quotes = 0;
@@ -152,8 +154,6 @@ static int escape_sequence_analysis(analyzator *alzr)
     // printf("prev_char == %d ch == %d\n", alzr->prev_char, alzr->ch);
     if (alzr->prev_char == '\\' && alzr->ch != '\\' && alzr->ch != '\"')
     {
-        if (alzr->ch != '\n')
-            clear_stdin('\n');
         alzr->code.major_code = backslash_error;
     }
 
@@ -165,7 +165,7 @@ static int escape_sequence_analysis(analyzator *alzr)
         
     return alzr->ch;
 }
-
+#ifdef legacy
 static int is_word_after_redirect(analyzator *alzr)
 {
     switch (alzr->ch)
@@ -192,7 +192,7 @@ static int is_word_after_redirect(analyzator *alzr)
     return 1;
 }
 
-int delimiter_analyse(analyzator *alzr)
+int _delimiter_analyse(analyzator *alzr)
 {
     static int need_check_redirect = 0;
     if ((alzr->quotes & 1))
@@ -269,8 +269,6 @@ int delimiter_analyse(analyzator *alzr)
     case ')':
     case ';':
         alzr->code.major_code = not_implemented;
-        if(alzr->ch != '\n')
-            clear_stdin('\n');
         break;
     default:
         if (alzr->ch != ' ' && alzr->ch != '\n')
@@ -287,16 +285,153 @@ int delimiter_analyse(analyzator *alzr)
     alzr->last_delimiter = alzr->ch;
     return ok;
 }
+#endif
+
+static int set_delimiter_type(context *cnt, int delimiter_len)
+{
+    analyzator *alzr = cnt->alzr;
+    switch (alzr->ch)
+    {
+
+    case '<':
+        alzr->lexeme.type = read_from_file;
+        if(delimiter_len)
+            alzr->code.major_code = delimiter_error;
+        break;
+    case '(':
+    case ')':
+    /*У скобок не должно быть delimiter_error т.к.
+    ситуация (( и )) возможна*/
+        alzr->code.major_code = not_implemented;
+        /*alzr->lexeme.type = not_implemented;*/
+        break;
+    case ';':
+        /*alzr->lexeme.type = not_implemented;*/
+        alzr->code.major_code = not_implemented;
+        if (delimiter_len == 1)
+        {
+                alzr->code.major_code = delimiter_error;
+        }
+        break;
+    case '>':
+        /*
+        cat main.c >> my_file &
+        cat main.c>>my_file&
+        cat main.c>>my_file &
+        cat main.c>> my_file&
+        cat main.c >> my_file&
+        */
+        alzr->lexeme.type = truncate_file;
+        if (delimiter_len == 1)
+        {
+            if(my_str_get_data(alzr->lexeme.word)[0] == alzr->ch)
+                alzr->lexeme.type = append_to_file;
+            else
+                alzr->code.major_code = delimiter_error;
+        }
+        break;
+    case '&':
+        alzr->lexeme.type = background_process;
+        if (delimiter_len == 1)
+        {
+            if (my_str_get_data(alzr->lexeme.word)[0] == alzr->ch)
+            {
+                /*alzr->lexeme.type = not_implemented;*/
+                alzr->code.major_code = not_implemented;
+            }
+            else
+                alzr->code.major_code = delimiter_error;
+        }
+        break;
+    case '|':
+        alzr->code.major_code = not_implemented;
+        /*alzr->lexeme.type = not_implemented;*/
+        if (delimiter_len == 1)
+        {
+            if (my_str_get_data(alzr->lexeme.word)[0] == alzr->ch)
+            {
+                /*alzr->lexeme.type = not_implemented;*/
+                alzr->code.major_code = not_implemented;
+            }
+            else
+                alzr->code.major_code = delimiter_error;
+        }
+        break;
+    default:
+        return ok;
+        break;
+    }
+
+    return quite;
+}
+
+static int delimiter_analyse(context *cnt)
+{
+    analyzator *alzr = cnt->alzr;
+    int delimiter_len = 0;
+    if(cnt->alzr->quotes&1)
+        return ok;
+    /* 
+    Сейчас сгруппированы по реализации, чтобы
+    лишний раз не писать не реализовано
+
+    После реализации каждого разделителя
+    сгруппировать может ли разделитель состоять
+    из двух символов (&&, >>, ||) или нет
+    */
+    switch (alzr->ch)
+    {
+
+    case '<':
+    
+    case '(':
+    case ')':
+    case ';':
+
+    
+    case '>':
+        /*
+        cat main.c >> my_file &
+        cat main.c>>my_file&
+        cat main.c>>my_file &
+        cat main.c>> my_file&
+        cat main.c >> my_file&
+        */    
+    case '&':
+    case '|':
+        {
+            if (alzr->lexeme.type == default_word)
+                 if(!insert_word(cnt)) return quite;
+
+            delimiter_len = my_str_get_len(alzr->lexeme.word);
+            if (delimiter_len >= MAX_DELIMITER_LEN)
+            {
+                alzr->code.major_code = delimiter_error;
+            }
+        }
+        break;
+    default:
+        return ok;
+        break;
+    }
+
+    set_delimiter_type(cnt, delimiter_len);
+    analyzator_code_error_handler(cnt->alzr);
+    return quite;
+}
 
 int process_symbol(context *cnt)
 {
     analyzator *alzr = cnt->alzr;
+
     alzr->code.major_code = add_char;
-    if(alzr->ch != ' ' && delimiter_analyse(alzr) != ok) return quite;
+    /*if(alzr->ch != ' ' && delimiter_analyse(alzr) != ok) return quite;*/
+    if(!delimiter_analyse(cnt)) return ok;
+
     switch (alzr->ch)
     {
     case EOF:
-        alzr->code.major_code = quite;
+        alzr->code.major_code = end_input_line;
         return quite;
         break;
     case '\"':
@@ -330,12 +465,16 @@ int process_symbol(context *cnt)
         insert_word(cnt);
         break;
     default:
+        if(alzr->lexeme.type != default_word)
+            insert_word(cnt);
         break;
     }
 
     alzr->prev_char = escape_sequence_analysis(alzr);
+    
     return ok;
 }
+
 
 void init_analizator(analyzator *alzr)
 {
@@ -346,7 +485,7 @@ void init_analizator(analyzator *alzr)
     alzr->code.major_code = ok;
     alzr->code.minore_code.raw = 0;
     alzr->code.minore_code.codes.fg_process = 1;
-    alzr->word = NULL;
+    alzr->lexeme.word = NULL;
     alzr->words = NULL;
     return;
 }
@@ -361,15 +500,16 @@ void reset_analizator(analyzator *alzr)
     alzr->code.minore_code.raw = 0;
     alzr->code.minore_code.codes.fg_process = 1;
 
-    if (!(alzr->word = my_str_create(NULL)))
+    if (!(alzr->lexeme.word = my_str_create(NULL)))
         alzr->code.major_code = alloc_error;
 
     if (!(alzr->words = my_list_create()))
     {
         alzr->code.major_code = alloc_error;
-        my_str_destroy(alzr->word);
-        alzr->word = NULL;
+        my_str_destroy(alzr->lexeme.word);
+        alzr->lexeme.word = NULL;
     }
+    alzr->lexeme.type = default_word;
     analyzator_code_error_handler(alzr);
     return;
 }
@@ -390,12 +530,11 @@ int my_strcmp(const char *str1, const char *str2)
     return compare_less;
 }
 
-void clear_stdin(int ch)
+int flush_stdin(context *cnt)
 {
-
-    while (getchar() != ch)
+    while (cnt->alzr->ch != '\n' && cnt->alzr->ch != EOF)
     {
+        cnt->alzr->ch = getchar();
     }
-    return;
+    return 1;
 }
-
