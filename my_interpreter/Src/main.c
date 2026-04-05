@@ -68,7 +68,7 @@ void dialog(context *cnt)
         process_symbol(cnt);
         if (cnt->alzr->code.major_code == add_char)
         {
-            my_str_pushback_char(cnt->alzr->lexeme.word, cnt->alzr->ch);
+            my_str_pushback_char(cnt->alzr->lexeme->word, cnt->alzr->ch);
             cnt->alzr->code.major_code = ok;
         }
     }
@@ -106,7 +106,16 @@ int dialog_codes_process(context *cnt)
         break;
     case not_implemented:
         printf("Future not implemented yet.\n");
-        cnt->alzr->code.major_code = clear_stdin;
+        break;
+    case unexpected_cymbol:
+        if(cnt->lex_err.cur_lexem != NULL)
+        {
+            printf("Syntax error near unexpected token '%c'\n",
+                   my_str_get_data(cnt->lex_err.cur_lexem->word)[0]);
+        }
+        else
+            printf("Interpretate error\n");        
+        break;
     default:
         break;
     }
@@ -120,7 +129,7 @@ void out_input(my_list *lst)
     for (my_list_iterator it = my_list_get_first(lst); it; it = it->next)
     {
         putchar('[');
-        printf("%s", my_str_get_data(it->data_holder.as_void));
+        printf("%s", my_str_get_data(((struct lexeme *)it->data_holder.as_void)->word));
         putchar(']');
         putchar('\n');
     }
