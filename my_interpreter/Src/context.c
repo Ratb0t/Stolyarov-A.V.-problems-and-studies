@@ -27,6 +27,8 @@ context *create_and_init_context()
     init_process_handle(cnt->proc_hanler);
     cnt->code.major_code = ok;
     cnt->code.minore_code.raw = 0;
+    cnt->lex_err.cur_lexem = NULL;
+    cnt->lex_err.next_lexem = NULL;
     return cnt;
 }
 void destroy_context(context *cnt)
@@ -40,6 +42,7 @@ void destroy_context(context *cnt)
 void context_reset_analizator(context *cnt)
 {
     reset_analizator(cnt->alzr);
-    cnt->code = cnt->alzr->code;
+    cnt->code.major_code = cnt->alzr->code.major_code;
+    cnt->code.minore_code.raw = cnt->alzr->code.minore_code.raw;
     return;
 }
