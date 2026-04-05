@@ -4,10 +4,22 @@
 static sig_atomic_t fg_pid;
 static void cleaning_background_processes(int sig);
 
+typedef int (*operator_function)(context *, my_list_iterator);
+static int operator_background(context *, my_list_iterator);
+operator_function table_op_funcs[] = 
+{
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    operator_background,
+};
 
 extern int end_dialog(context *cnt);
 extern void destroy_context(context *cnt);
 
+static int interpret_lexemes(context *cnt, char **cmd_line);
 static int format_cmd_line(context *cnt, char *cmd_line[]);
 static int process_cd_command(context *cnt, char *path);
 
@@ -43,12 +55,12 @@ void init_process_handle(process_handle *ph)
 
 static int format_cmd_line(context *cnt, char *cmd_line[])
 {
-    my_list_iterator it = my_list_get_first(cnt->alzr->words);
+    my_list_iterator it = my_list_get_first(cnt->alzr->lexemes);
     int i = 0;
     my_string *str;
     for (; it; ++i, it = it->next)
     {
-        str = (my_string *)(it->data_holder.as_void);
+        str = (my_string *)(((struct lexeme *)(it->data_holder.as_void))->word);
         if (str != cnt->proc_hanler->input_redirection && 
             str != cnt->proc_hanler->output_redirection)
         {
@@ -173,18 +185,65 @@ static void spawn_child_process(context *cnt, char *cmd_line[], int fd_in, int f
     return;
 }
 
+static int operator_background(context *cnt, my_list_iterator it)
+{
+    if(it->next == NULL)
+    {
+        cnt->code.minore_code.codes.fg_process = 0;
+        return 1;
+    }
+
+    //cnt->lex_err.cur_lexem = it->data_holder.as_void;
+
+    cnt->code.major_code = unexpected_cymbol;
+    return 0;
+}
+
+int interpret_lexemes(context *cnt, char **cmd_line)
+{
+    my_list_iterator it = my_list_get_first(cnt->alzr->lexemes);
+    struct lexeme *lexeme;
+    int cur = 0;
+    while(it)
+    {
+        lexeme = it->data_holder.as_void;
+        if(lexeme->type != default_word)
+        {
+            if (my_list_get_first(cnt->alzr->lexemes) == it ||
+                table_op_funcs[lexeme->type](cnt, it) == 0)
+            {
+                return 0;
+            }
+        }
+        else
+        {
+            cmd_line[cur] = (char *)my_str_get_data(lexeme->word);
+        }
+        
+        it = it->next;
+        ++cur;
+    }
+    //format_cmd_line(cnt, cmd_line);
+    return 1;
+}
+
 int start_external_prog(context *cnt)
 {
     int fd_in = -1, fd_out = -1;
     int code = 1;
-    char **cmd_line = malloc(sizeof(char *) * (my_list_get_len(cnt->alzr->words) + 1));
+    char **cmd_line = malloc(sizeof(char *) * (my_list_get_len(cnt->alzr->lexemes) + 1));
     if (!cmd_line)
     {
         cnt->code.major_code = alloc_error;
         return 0;
     }
-
-    format_cmd_line(cnt, cmd_line);
+    /*
+    Сделать функцию интерпретирующую лексемы
+    Перенести 
+    */
+    code = interpret_lexemes(cnt, cmd_line);
+    if(code == 0)
+        return code;
 
     if (my_strcmp(cmd_line[0], "cd") == compare_equal)
     {
@@ -224,7 +283,7 @@ int wait_startetd_process_before_quite(context *cnt)
 
 static void cleaning_background_processes(int sig)
 {
-    signal(SIGCHLD, cleaning_background_processes);
+    signal(sig, cleaning_background_processes);
     int p;
     while ((p = wait4(-1, NULL, WNOHANG, NULL)) > 0)
     {
