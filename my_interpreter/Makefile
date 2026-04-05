@@ -11,7 +11,7 @@ HEADERS_DIR := $(SRC_DIR)/Headers
 
 INCLUDE_DIRS = -I$(UTILS_HEADERS_DIR) -I$(HEADERS_DIR)
 
-CC_FLAGS = -g -Wall $(INCLUDE_DIRS)
+CC_FLAGS = -g -Wall -Werror=vla -Wextra -Wfloat-equal $(INCLUDE_DIRS)
 CC := gcc
 
 SRC_C := $(wildcard $(SRC_DIR)/*.c)
