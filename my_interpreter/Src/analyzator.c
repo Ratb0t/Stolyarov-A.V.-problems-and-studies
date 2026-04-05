@@ -1,11 +1,12 @@
 #include "analyzator.h"
-#define PRINT_VARIANT
+#define _PRINT_VARIANT
 #define MAX_DELIMITER_LEN 2
 
 typedef int (*delimiter_function)(analyzator *alzr);
-const delimiter_function delimiter_funсs_table[] = {
 
-};
+static struct lexeme *create_lexeme();
+static int destroy_lexeme(void *lexeme);
+static int init_lexeme(struct lexeme *lex);
 
 static void analyzator_code_error_handler(analyzator *alzr);
 
@@ -37,12 +38,13 @@ void set_control_code(context *cnt)
     return;
 }
 
-static void clear_list(my_list *lst)
+static void clear_list(my_list *lst, int (*func)(void *))
 {
     my_list_iterator it;
     while ((it = my_list_get_first(lst)))
     {
-        my_str_destroy(it->data_holder.as_void);
+        if(func != NULL)
+            func(it->data_holder.as_void);
         my_list_delete_item(lst, 0);
     }
 
@@ -87,6 +89,28 @@ static void analyzator_code_error_handler(analyzator *alzr)
     return;
 }
 
+static struct lexeme *create_lexeme()
+{
+    struct lexeme *l = malloc(sizeof(struct lexeme));
+    return l;
+}
+static int destroy_lexeme(void *lexeme)
+{
+    struct lexeme *lex = lexeme;
+    if(lex->word != NULL)
+        my_str_destroy(lex->word);
+    free(lex);
+    return 1;
+}
+static int init_lexeme(struct lexeme *lex)
+{
+    lex->word = my_str_create(NULL);
+    if(lex->word == NULL)
+        return alloc_error;
+    lex->type = default_word;
+    return ok;    
+}
+
 analyzator *create_analyzator()
 {
     analyzator *alzr = malloc(sizeof(analyzator));
@@ -99,13 +123,13 @@ int clear_analyzator(analyzator *alzr)
 {
     if (alzr->lexemes)
     {
-        clear_list(alzr->lexemes);
+        clear_list(alzr->lexemes, destroy_lexeme);
         my_list_destroy(alzr->lexemes);
     }
-    if (alzr->lexeme.word)
-        my_str_destroy(alzr->lexeme.word);
+    if (alzr->lexeme)
+        destroy_lexeme(alzr->lexeme);
 
-    alzr->lexeme.word = NULL;
+    alzr->lexeme = NULL;
     alzr->lexemes = NULL;
     return 1;
 
@@ -123,27 +147,33 @@ static int insert_word(context *cnt)
     analyzator *alzr = cnt->alzr;
     if (!(alzr->quotes & 1))
     {
-        if (my_str_get_len(alzr->lexeme.word) || alzr->quotes)
+        if (my_str_get_len(alzr->lexeme->word) || alzr->quotes)
         {
-            my_list_push_back(alzr->lexemes, (top_type){.as_void = alzr->lexeme.word});
-            alzr->lexeme.word = my_str_create(0);
-            if (!alzr->lexeme.word)
+            my_list_push_back(alzr->lexemes, (top_type){.as_void = alzr->lexeme});
+            alzr->lexeme = create_lexeme();
+            if (alzr->lexeme == NULL)
             {
                 alzr->code.major_code = alloc_error;
                 return quite;
             }
-            alzr->lexeme.type = default_word;
+            if(init_lexeme(alzr->lexeme) == alloc_error)
+            {
+                alzr->code.major_code = alloc_error;
+                return quite;
+            }
         }
+#       ifdef legacy
         if (alzr->code.minore_code.codes.set_in_redirect_path)
         {
-            cnt->proc_hanler->input_redirection = alzr->lexeme.word;
+            cnt->proc_hanler->input_redirection = alzr->lexeme->word;
             alzr->code.minore_code.codes.set_in_redirect_path = 0;
         }
         if (alzr->code.minore_code.codes.set_out_redirect_path)
         {
-            cnt->proc_hanler->output_redirection = alzr->lexeme.word;
+            cnt->proc_hanler->output_redirection = alzr->lexeme->word;
             alzr->code.minore_code.codes.set_out_redirect_path = 0;
         }
+#       endif
         alzr->quotes = 0;
     }
     return ok;
@@ -294,7 +324,7 @@ static int set_delimiter_type(context *cnt, int delimiter_len)
     {
 
     case '<':
-        alzr->lexeme.type = read_from_file;
+        alzr->lexeme->type = read_from_file;
         if(delimiter_len)
             alzr->code.major_code = delimiter_error;
         break;
@@ -321,20 +351,20 @@ static int set_delimiter_type(context *cnt, int delimiter_len)
         cat main.c>> my_file&
         cat main.c >> my_file&
         */
-        alzr->lexeme.type = truncate_file;
+        alzr->lexeme->type = truncate_file;
         if (delimiter_len == 1)
         {
-            if(my_str_get_data(alzr->lexeme.word)[0] == alzr->ch)
-                alzr->lexeme.type = append_to_file;
+            if (my_str_get_data(alzr->lexeme->word)[0] == alzr->ch)
+                alzr->lexeme->type = append_to_file;
             else
                 alzr->code.major_code = delimiter_error;
         }
         break;
     case '&':
-        alzr->lexeme.type = background_process;
+        alzr->lexeme->type = background_process;
         if (delimiter_len == 1)
         {
-            if (my_str_get_data(alzr->lexeme.word)[0] == alzr->ch)
+            if (my_str_get_data(alzr->lexeme->word)[0] == alzr->ch)
             {
                 /*alzr->lexeme.type = not_implemented;*/
                 alzr->code.major_code = not_implemented;
@@ -348,7 +378,7 @@ static int set_delimiter_type(context *cnt, int delimiter_len)
         /*alzr->lexeme.type = not_implemented;*/
         if (delimiter_len == 1)
         {
-            if (my_str_get_data(alzr->lexeme.word)[0] == alzr->ch)
+            if (my_str_get_data(alzr->lexeme->word)[0] == alzr->ch)
             {
                 /*alzr->lexeme.type = not_implemented;*/
                 alzr->code.major_code = not_implemented;
@@ -400,10 +430,10 @@ static int delimiter_analyse(context *cnt)
     case '&':
     case '|':
         {
-            if (alzr->lexeme.type == default_word)
+            if (alzr->lexeme->type == default_word)
                  if(!insert_word(cnt)) return quite;
 
-            delimiter_len = my_str_get_len(alzr->lexeme.word);
+            delimiter_len = my_str_get_len(alzr->lexeme->word);
             if (delimiter_len >= MAX_DELIMITER_LEN)
             {
                 alzr->code.major_code = delimiter_error;
@@ -465,7 +495,7 @@ int process_symbol(context *cnt)
         insert_word(cnt);
         break;
     default:
-        if(alzr->lexeme.type != default_word)
+        if (alzr->lexeme->type != default_word)
             insert_word(cnt);
         break;
     }
@@ -485,7 +515,7 @@ void init_analizator(analyzator *alzr)
     alzr->code.major_code = ok;
     alzr->code.minore_code.raw = 0;
     alzr->code.minore_code.codes.fg_process = 1;
-    alzr->lexeme.word = NULL;
+    alzr->lexeme = NULL;
     alzr->lexemes = NULL;
     return;
 }
@@ -500,16 +530,24 @@ void reset_analizator(analyzator *alzr)
     alzr->code.minore_code.raw = 0;
     alzr->code.minore_code.codes.fg_process = 1;
 
-    if (!(alzr->lexeme.word = my_str_create(NULL)))
+    alzr->lexeme = create_lexeme();
+    if(alzr->lexeme == NULL)
         alzr->code.major_code = alloc_error;
+
+    if (init_lexeme(alzr->lexeme) == alloc_error)
+    {
+        alzr->code.major_code = alloc_error;
+        destroy_lexeme(alzr->lexeme);
+        alzr->lexeme = NULL;
+        return;
+    }
 
     if (!(alzr->lexemes = my_list_create()))
     {
         alzr->code.major_code = alloc_error;
-        my_str_destroy(alzr->lexeme.word);
-        alzr->lexeme.word = NULL;
+        destroy_lexeme(alzr->lexeme);
+        alzr->lexeme = NULL;
     }
-    alzr->lexeme.type = default_word;
     analyzator_code_error_handler(alzr);
     return;
 }
