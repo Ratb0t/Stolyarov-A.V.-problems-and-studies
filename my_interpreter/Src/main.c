@@ -99,7 +99,7 @@ int dialog_codes_process(context *cnt)
         printf("The 'HOME' environment variable does not exist or does not contain the path to the home directory.\n");
         break;
     case print_input:
-        out_input(cnt->alzr->words);
+        out_input(cnt->alzr->lexemes);
         break;
     case alloc_error:
         printf("Error: can't alloc memory.\n");

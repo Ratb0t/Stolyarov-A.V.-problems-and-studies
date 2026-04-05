@@ -61,7 +61,7 @@ typedef struct analyzator
         my_string *word;
         enum lexeme_type type;
     } lexeme;
-    my_list *words;
+    my_list *lexemes;
     int ch;
     int prev_char;
     int last_delimiter;

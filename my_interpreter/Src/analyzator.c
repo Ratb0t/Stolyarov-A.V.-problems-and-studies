@@ -22,7 +22,7 @@ void set_control_code(context *cnt)
     if (cnt->alzr->code.major_code != not_implemented)
     {
         analyzator_code_error_handler(cnt->alzr);
-        if (my_list_get_len(cnt->alzr->words) && cnt->alzr->code.major_code == end_input_line)
+        if (my_list_get_len(cnt->alzr->lexemes) && cnt->alzr->code.major_code == end_input_line)
 #       ifdef PRINT_VARIANT
             cnt->alzr->code.major_code = print_input; //
 #       else
@@ -97,16 +97,16 @@ analyzator *create_analyzator()
 
 int clear_analyzator(analyzator *alzr)
 {
-    if (alzr->words)
+    if (alzr->lexemes)
     {
-        clear_list(alzr->words);
-        my_list_destroy(alzr->words);
+        clear_list(alzr->lexemes);
+        my_list_destroy(alzr->lexemes);
     }
     if (alzr->lexeme.word)
         my_str_destroy(alzr->lexeme.word);
 
     alzr->lexeme.word = NULL;
-    alzr->words = NULL;
+    alzr->lexemes = NULL;
     return 1;
 
 }
@@ -125,7 +125,7 @@ static int insert_word(context *cnt)
     {
         if (my_str_get_len(alzr->lexeme.word) || alzr->quotes)
         {
-            my_list_push_back(alzr->words, (top_type){.as_void = alzr->lexeme.word});
+            my_list_push_back(alzr->lexemes, (top_type){.as_void = alzr->lexeme.word});
             alzr->lexeme.word = my_str_create(0);
             if (!alzr->lexeme.word)
             {
@@ -486,7 +486,7 @@ void init_analizator(analyzator *alzr)
     alzr->code.minore_code.raw = 0;
     alzr->code.minore_code.codes.fg_process = 1;
     alzr->lexeme.word = NULL;
-    alzr->words = NULL;
+    alzr->lexemes = NULL;
     return;
 }
 
@@ -503,7 +503,7 @@ void reset_analizator(analyzator *alzr)
     if (!(alzr->lexeme.word = my_str_create(NULL)))
         alzr->code.major_code = alloc_error;
 
-    if (!(alzr->words = my_list_create()))
+    if (!(alzr->lexemes = my_list_create()))
     {
         alzr->code.major_code = alloc_error;
         my_str_destroy(alzr->lexeme.word);
