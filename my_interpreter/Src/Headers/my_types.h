@@ -24,6 +24,7 @@ enum codes
     not_implemented,
     emty_input,
     clear_stdin,
+    unexpected_cymbol,
 
 
 };
@@ -55,12 +56,15 @@ typedef struct control_codes
     } minore_code;
 }control_codes;
 
+struct lexeme
+{
+    my_string *word;
+    enum lexeme_type type;
+};
+
 typedef struct analyzator
 {
-    struct lexeme{
-        my_string *word;
-        enum lexeme_type type;
-    } lexeme;
+    struct lexeme *lexeme;
     my_list *lexemes;
     int ch;
     int prev_char;
@@ -83,6 +87,11 @@ typedef struct context
     analyzator *alzr;
     process_handle *proc_hanler;
     control_codes code;
+    struct lexeme_error
+    {
+        struct lexeme *cur_lexem;
+        struct lexeme *next_lexem;
+    }lex_err;
 } context;
 
 #endif /* !REINCLUDE_MY_TYPES_SENTRY */
